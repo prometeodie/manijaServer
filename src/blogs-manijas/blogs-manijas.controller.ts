@@ -20,6 +20,40 @@ export class BlogsManijasController {
   public async create(@Body() createBlogsManijaDto: CreateBlogsManijaDto, @UploadedFile() file: Express.Multer.File) {
     const blog = createBlogsManijaDto;
     blog.imgUrl = file.path;
+
+    // endpoint Get Juego(id:'brass')
+
+    // 1: GET FROM MONGO DB
+    const data = {
+      title: 'brass',
+      desc: '',
+    };
+
+    const fullData = { ...data, image: [] };
+
+    // 2: Generate images urls
+    const currDir = process.cwd();
+
+
+    // fs count directory brass = 8
+
+    // for 8
+    // fullData.images.push(`${currDir}/upload/images/juegos/${data.title}/${data.title}${i}.png`);
+
+    // 3: Return data
+
+    // data = {
+    //   title: 'brass',
+    //   desc: '',
+    //   images: [
+    //     'https://manija.api/dist/upload/images/games/brass/brass1.png',
+    //     'dirbase/upload/images/games/brass/brass2.png',
+    //     'dirbase/upload/images/games/brass/brass3.png',
+    //   ]
+    // };
+
+    // 4: Frontend = <img [src]="data.images.imgUri1">
+
     return await this.blogsManijasService.create(blog);
   }
 
