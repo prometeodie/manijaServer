@@ -8,19 +8,18 @@ import { renameImage } from 'src/helpers/image.helper';
 
 @Controller('blogsManijas')
 export class BlogsManijasController {
-  constructor(private readonly blogsManijasService: BlogsManijasService) {}
+  constructor(private readonly blogsManijasService: BlogsManijasService) { }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file' , {
+  @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './upload/images/blogs',
+      destination: './upload/images',
       filename: renameImage
     })
   }))
-  public async create(@Body() createBlogsManijaDto: CreateBlogsManijaDto, @UploadedFile() file: Express.Multer.File ) {
+  public async create(@Body() createBlogsManijaDto: CreateBlogsManijaDto, @UploadedFile() file: Express.Multer.File) {
     const blog = createBlogsManijaDto;
-    console.log(file.path , blog )
-     blog.imgUrl = file.path;
+    blog.imgUrl = file.path;
     return await this.blogsManijasService.create(blog);
   }
 
