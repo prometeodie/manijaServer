@@ -26,5 +26,19 @@ export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
     
     @IsString()
     @IsOptional()
+    category:string[]
+    
+    @IsString()
+    @IsOptional()
     imgUrl:string;
+
+    @IsString()
+    @IsOptional()
+    section: string; // juegos, blogs, eventos
+
+    @IsString()
+    @IsOptional()
+    itemName: string; // if:juegos / zombiecide, brass, kinmo...
+    // if:blog / blog1, blog2, ...
+    // if:evento / event1, event2, .
 }

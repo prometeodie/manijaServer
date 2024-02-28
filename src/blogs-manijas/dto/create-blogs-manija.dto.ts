@@ -16,10 +16,25 @@ export class CreateBlogsManijaDto {
     writedBy:string;
     
     @IsString()
+    @IsNotEmpty()
+    category:string[]
+    
+    @IsString()
     @MinLength(20)
     blogContent:string;
 
     @IsString()
     @IsOptional()
     imgUrl:string;
+
+    @IsString()
+    @IsOptional()
+    section: string; // juegos, blogs, eventos
+
+    @IsString()
+    @IsOptional()
+    itemName: string; // if:juegos / zombiecide, brass, kinmo...
+    // if:blog / blog1, blog2, ...
+    // if:evento / event1, event2, .
+    // TODO: debo mandar el titulo sin ningun espacio
 }

@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res, HttpStatus } from '@nestjs/common';
 import { BlogsManijasService } from './blogs-manijas.service';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { renameImage } from 'src/helpers/image.helper';
+import { fileFilter, saveImage } from 'src/helpers/image.helper';
+import { Response } from 'express';
 
 @Controller('blogsManijas')
 export class BlogsManijasController {
@@ -13,15 +14,26 @@ export class BlogsManijasController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file' , {
     storage: diskStorage({
-      destination: './upload/images/blogs',
-      filename: renameImage
-    })
+      destination: './upload/images',
+      filename: saveImage
+    }),
+    limits: {
+      fileSize: 3145728
+    },
+    fileFilter: fileFilter
   }))
-  public async create(@Body() createBlogsManijaDto: CreateBlogsManijaDto, @UploadedFile() file: Express.Multer.File ) {
+  public async create(
+    @Body() createBlogsManijaDto: CreateBlogsManijaDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res: Response ) {
     const blog = createBlogsManijaDto;
-    console.log(file.path , blog )
-     blog.imgUrl = file.path;
-    return await this.blogsManijasService.create(blog);
+
+    await this.blogsManijasService.create(blog);
+
+    return res.status(HttpStatus.OK).json({
+      message:'Blog has been saved'
+    })
+
   }
 
   @Get()
@@ -35,7 +47,13 @@ export class BlogsManijasController {
   }
 
   @Patch(':id')
-  public async update(@Param('id') id: string, @Body() updateBlogsManijaDto: UpdateBlogsManijaDto) {
+  @UseInterceptors(FileInterceptor('file' , {
+    storage: diskStorage({
+      destination: './upload/images',
+      filename: saveImage
+    })
+  }))
+  public async update(@Param('id') id: string, @Body() updateBlogsManijaDto: UpdateBlogsManijaDto, @UploadedFile() file: Express.Multer.File ) {
     return await this.blogsManijasService.update(id, updateBlogsManijaDto);
   }
 

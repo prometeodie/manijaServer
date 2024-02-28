@@ -15,11 +15,12 @@ export class BlogsManija {
     @Prop({minlength:20, required: true})
     blogContent:string;
 
+    @Prop({required:true})
+    category:string[]
+
     @Prop({required: true})
     creationDate:Date
     
-    @Prop({required: true})
-    imgUrl: string;
 }
 
 export const BlogSchema = SchemaFactory.createForClass(BlogsManija);
