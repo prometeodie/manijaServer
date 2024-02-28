@@ -23,18 +23,5 @@ export const fileFilter = (req, file, callback) => {
 }
 // TODO: debo ver como subir muchas imagenes y en cuestion de eso ponerle el numero en el nombre
 // TODO:debo ver que nombre generico ponerle a las imagenes segun el titulo,lo ideal seria numeros.
-// TODO: debo ponerle la seguridad de cantidad de peso y extension de la imagen
 // TODO: debo hacee el get para debolver la imagen
 // TODO:debo aveiguar con shave o share bajarle peso y que envie la iumagen de menor targetModulesByContainer;o segun si es mobile o desktop
-
-// export const renameImage = (req, file, callaback) =>{
-
-//     const name = file.originalname.split('.')[0];
-//     const fileName = file.originalname;
-//     const randomName = Array(4)
-//     .fill(null)
-//     .map(()=> Math.round(Math.random() * 16).toString(16))
-//     .join('');
-
-//     callaback(null, `${name}-${randomName}${fileName}`);
-// }
