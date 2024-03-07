@@ -18,6 +18,9 @@ export class BlogsManija {
     @Prop({required:true})
     category:string[]
 
+    @Prop({required:true})
+    imgPath:string[]
+
     @Prop({required: true})
     creationDate:Date
     

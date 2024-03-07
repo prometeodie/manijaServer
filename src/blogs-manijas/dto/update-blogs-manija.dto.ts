@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateBlogsManijaDto } from './create-blogs-manija.dto';
-import { IsNotEmpty, IsOptional, IsString, MinLength, isString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
 
@@ -30,15 +30,13 @@ export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
     
     @IsString()
     @IsOptional()
-    imgUrl:string;
+    imgPath: string[];
 
     @IsString()
     @IsOptional()
-    section: string; // juegos, blogs, eventos
+    section: string;
 
     @IsString()
     @IsOptional()
-    itemName: string; // if:juegos / zombiecide, brass, kinmo...
-    // if:blog / blog1, blog2, ...
-    // if:evento / event1, event2, .
+    itemName: string; 
 }

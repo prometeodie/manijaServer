@@ -25,7 +25,7 @@ export class CreateBlogsManijaDto {
 
     @IsString()
     @IsOptional()
-    imgUrl: string;
+    imgPath: string[];
 
     @IsString()
     @IsOptional()
@@ -36,5 +36,4 @@ export class CreateBlogsManijaDto {
     itemName: string; // if:juegos / zombiecide, brass, kinmo...
     // if:blog / blog1, blog2, ...
     // if:evento / event1, event2, .
-    // TODO: debo mandar el titulo sin ningun espacio
 }

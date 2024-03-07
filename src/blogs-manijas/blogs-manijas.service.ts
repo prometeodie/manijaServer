@@ -70,9 +70,6 @@ export class BlogsManijasService {
       throw ErrorManager.createSignatureError(error.message);
     }
   }
-  
-   uploadImg(){
-    return 'upload/blog/asasasbaiskd.jpg'
-  }
+
 
 }
