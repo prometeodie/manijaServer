@@ -1,15 +1,14 @@
 import * as fs from 'node:fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
+import * as sharp from 'sharp';
 
 export const saveImage = (req, file, callback) => {
     const { section, itemName } = req.body; 
     const currDir = process.cwd();
     
-    if (!fs.existsSync(`${currDir}/upload/${section}/${itemName}`)) {
-        fs.mkdirSync(`${currDir}/upload/${section}/${itemName}`);
-    }
-    
+    pathCreator(`${currDir}/upload/${section}/${itemName}`)
+
     callback(null, `upload/${section}/${itemName}`);
 }
 
@@ -28,4 +27,17 @@ export const fileFilter = (req, file, callback) => {
     callback(null,true)
 }
 
-// TODO:debo aveiguar con shave o share bajarle peso y que envie la iumagen de menor targetModulesByContainer;o segun si es mobile o desktop
+export const imgResizing =  (filePath:string, newPath:string,fileName:string, size:number)=>{
+    pathCreator(`${newPath}/optimize`)
+    return sharp(filePath)
+        .resize(size)
+        .toFile(`${newPath}/optimize/smallS-${fileName}`)            
+}
+
+const pathCreator = (path:string)=>{
+    if (!fs.existsSync(path)) {
+        fs.mkdirSync(path);
+    }
+}
+
+// TODO:debo lograr bborrar imagenes por medio del path

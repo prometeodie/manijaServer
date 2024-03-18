@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res, HttpStatus, UploadedFiles, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res, HttpStatus, UploadedFiles } from '@nestjs/common';
 import { BlogsManijasService } from './blogs-manijas.service';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
+import { fileFilter, imgResizing, nameImg, saveImage } from 'src/helpers/image.helper';
 import { Response } from 'express';
 
 @Controller('blogsManijas')
@@ -29,8 +29,9 @@ export class BlogsManijasController {
     @Res() res: Response ) {
       try{
         const blog = createBlogsManijaDto;
-        console.log(files)
-        blog.imgPath = files.map(file => `/${file.filename}`)
+        blog.imgPath = files.map(file => `${file.path}`)
+        const optimizedPath = `upload/blogs/${blog.itemName}`
+        files.map((file,i) => imgResizing(blog.imgPath[i],optimizedPath,file.filename,300))
         await this.blogsManijasService.create(blog);
         return res.status(HttpStatus.OK).json({
           message:'Blog has been saved',
