@@ -30,7 +30,7 @@ export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
     
     @IsString()
     @IsOptional()
-    imgPath: string[];
+    imgName: string[];
 
     @IsString()
     @IsOptional()

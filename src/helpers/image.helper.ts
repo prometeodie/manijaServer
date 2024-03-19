@@ -6,7 +6,6 @@ import * as sharp from 'sharp';
 export const saveImage = (req, file, callback) => {
     const { section, itemName } = req.body; 
     const currDir = process.cwd();
-    
     pathCreator(`${currDir}/upload/${section}/${itemName}`)
 
     callback(null, `upload/${section}/${itemName}`);
@@ -39,5 +38,3 @@ const pathCreator = (path:string)=>{
         fs.mkdirSync(path);
     }
 }
-
-// TODO:debo lograr bborrar imagenes por medio del path

@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { BlogsManija } from './entities/blogs-manija.entity';
 import { ErrorManager } from 'src/utils/error.manager';
-
+import { imgResizing } from 'src/helpers/image.helper';
 
 @Injectable()
 export class BlogsManijasService {
@@ -71,5 +71,22 @@ export class BlogsManijasService {
     }
   }
 
+   deleteImage = async (imagePath: string) => {
+        try{
+          const fs = require('fs').promises
+          await fs.rm(imagePath, { recursive: true })
+        return true;
+      } catch (error){
+        console.error('Something wrong happened removing "articles" folder', error)
+        throw error;
+      }
+  }
 
+  resizeImg(blog:CreateBlogsManijaDto ,files: Express.Multer.File[]){
+    blog.imgName = files.map(file => `${file.filename}`)
+      if(files.length > 0){
+        const path = `upload/blogs/${blog.itemName}`
+        files.map((file,i) => imgResizing(`${path}/${blog.imgName[i]}`,path,file.filename,300))
+      }
+  }
 }

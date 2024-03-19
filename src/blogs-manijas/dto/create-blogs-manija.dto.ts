@@ -25,7 +25,7 @@ export class CreateBlogsManijaDto {
 
     @IsString()
     @IsOptional()
-    imgPath: string[];
+    imgName: string[];
 
     @IsString()
     @IsOptional()

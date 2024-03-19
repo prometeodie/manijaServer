@@ -19,7 +19,7 @@ export class BlogsManija {
     category:string[]
 
     @Prop({required:true})
-    imgPath:string[]
+    imgName:string[]
 
     @Prop({required: true})
     creationDate:Date

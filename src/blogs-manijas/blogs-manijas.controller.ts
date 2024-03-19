@@ -10,6 +10,7 @@ import { Response } from 'express';
 @Controller('blogsManijas')
 export class BlogsManijasController {
   constructor(private readonly blogsManijasService: BlogsManijasService) {}
+  // TODO:acomodar patch para imagenes
 
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 1, {
@@ -29,9 +30,7 @@ export class BlogsManijasController {
     @Res() res: Response ) {
       try{
         const blog = createBlogsManijaDto;
-        blog.imgPath = files.map(file => `${file.path}`)
-        const optimizedPath = `upload/blogs/${blog.itemName}`
-        files.map((file,i) => imgResizing(blog.imgPath[i],optimizedPath,file.filename,300))
+        this.blogsManijasService.resizeImg(blog,files);
         await this.blogsManijasService.create(blog);
         return res.status(HttpStatus.OK).json({
           message:'Blog has been saved',
@@ -53,7 +52,7 @@ export class BlogsManijasController {
     return await this.blogsManijasService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('edit/:id')
   @UseInterceptors(FilesInterceptor('files', 1, {
     fileFilter: fileFilter,
     limits: {
@@ -67,18 +66,29 @@ export class BlogsManijasController {
   public async update(
     @Param('id') id: string, 
     @Body() updateBlogsManijaDto: UpdateBlogsManijaDto, 
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
     @Res() res: Response ) {
-      console.log(file)
-    await this.blogsManijasService.update(id, updateBlogsManijaDto);
-    return res.status(HttpStatus.OK).json({
+      const blog = updateBlogsManijaDto;
+      this.blogsManijasService.resizeImg(blog,files);
+      await this.blogsManijasService.update(id, updateBlogsManijaDto);
+      return res.status(HttpStatus.OK).json({
       message:'Blog has been actualized'
     })
   }
 
-  @Delete(':id')
+  @Delete('delete/:id')
   public async remove(@Param('id') id: string) {
     return await this.blogsManijasService.remove(id);
+  }
+
+  @Delete('delete/img/:path(*)')
+  public async removeImg(@Param('path') path: string) {
+    try {
+      await this.blogsManijasService.deleteImage(path);
+      return { success: true, message: 'Image deleted successfully.' };
+    } catch (error) {
+      return { success: false, message: 'Failed to delete image.', error: error.message };
+    }
   }
 
 }
