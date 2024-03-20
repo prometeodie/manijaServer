@@ -86,7 +86,7 @@ export class BlogsManijasService {
     blog.imgName = files.map(file => `${file.filename}`)
       if(files.length > 0){
         const path = `upload/blogs/${blog.itemName}`
-        files.map((file,i) => imgResizing(`${path}/${blog.imgName[i]}`,path,file.filename,300))
+        files.map((file,i) => imgResizing(`${path}/${blog.imgName[i]}`,path,file.filename,500))
       }
   }
 }

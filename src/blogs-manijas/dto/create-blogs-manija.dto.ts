@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 
 
 export class CreateBlogsManijaDto {
@@ -33,7 +33,9 @@ export class CreateBlogsManijaDto {
 
     @IsString()
     @IsOptional()
-    itemName: string; // if:juegos / zombiecide, brass, kinmo...
-    // if:blog / blog1, blog2, ...
-    // if:evento / event1, event2, .
+    itemName: string; // zombiecide, brass, kinmo...
+
+    @IsBoolean()
+    @IsOptional()
+    publish:Boolean
 }

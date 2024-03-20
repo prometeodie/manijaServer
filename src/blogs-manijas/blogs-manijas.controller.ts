@@ -1,23 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res, HttpStatus, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UploadedFiles } from '@nestjs/common';
 import { BlogsManijasService } from './blogs-manijas.service';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { fileFilter, imgResizing, nameImg, saveImage } from 'src/helpers/image.helper';
+import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { Response } from 'express';
 
 @Controller('blogsManijas')
 export class BlogsManijasController {
   constructor(private readonly blogsManijasService: BlogsManijasService) {}
-  // TODO:acomodar patch para imagenes
-
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 1, {
     fileFilter: fileFilter,
     limits: {
       fileSize: 3145728
-      // TODO:cambiar el tamano de img permitido segun la necesidad
     },
     storage: diskStorage({
       destination: saveImage,
@@ -30,6 +27,7 @@ export class BlogsManijasController {
     @Res() res: Response ) {
       try{
         const blog = createBlogsManijaDto;
+        blog.publish = false;
         this.blogsManijasService.resizeImg(blog,files);
         await this.blogsManijasService.create(blog);
         return res.status(HttpStatus.OK).json({
@@ -77,8 +75,19 @@ export class BlogsManijasController {
   }
 
   @Delete('delete/:id')
-  public async remove(@Param('id') id: string) {
-    return await this.blogsManijasService.remove(id);
+  public async remove(
+    @Param('id') id: string,
+    @Res() res: Response) {
+      try{
+        await this.blogsManijasService.remove(id);
+        return res.status(HttpStatus.OK).json({
+          message:'Blog has been deleted'
+        })
+      }catch{
+        return res.status(HttpStatus.CONFLICT).json({
+          message:'Failed to delete Blog'
+        })
+      }
   }
 
   @Delete('delete/img/:path(*)')

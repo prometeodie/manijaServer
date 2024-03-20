@@ -23,6 +23,9 @@ export class BlogsManija {
 
     @Prop({required: true})
     creationDate:Date
+
+    @Prop({required: true})
+    publish:Boolean
     
 }
 
