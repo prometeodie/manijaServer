@@ -28,7 +28,8 @@ export const fileFilter = (req, file, callback) => {
 
 export const imgResizing =  (filePath:string, newPath:string,fileName:string, size:number)=>{
     pathCreator(`${newPath}/optimize`)
-    return sharp(filePath)
+    console.log(filePath)
+    return sharp(`${filePath}/${fileName}`)
         .resize(size)
         .toFile(`${newPath}/optimize/smallS-${fileName}`)            
 }

@@ -16,9 +16,10 @@ export class BlogsManijasService {
     private blogsManijaModel: Model<BlogsManija>,
   ) {}
 
-  async create(createBlogsManijaDto: CreateBlogsManijaDto) {
+  async create(createBlogsManijaDto: CreateBlogsManijaDto, files:Express.Multer.File[]) {
     try{
       const newBlog = await new this.blogsManijaModel( createBlogsManijaDto );
+      newBlog.imgName = files.map(file => `${file.filename}`)
       newBlog.creationDate = new Date;
       return newBlog.save()
     }catch(error){
@@ -83,10 +84,9 @@ export class BlogsManijasService {
   }
 
   resizeImg(blog:CreateBlogsManijaDto ,files: Express.Multer.File[]){
-    blog.imgName = files.map(file => `${file.filename}`)
       if(files.length > 0){
         const path = `upload/blogs/${blog.itemName}`
-        files.map((file,i) => imgResizing(`${path}/${blog.imgName[i]}`,path,file.filename,500))
+        files.map((file,i) => imgResizing(`${path}`,path,file.filename,500))
       }
   }
 }

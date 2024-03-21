@@ -10,6 +10,7 @@ import { Response } from 'express';
 @Controller('blogsManijas')
 export class BlogsManijasController {
   constructor(private readonly blogsManijasService: BlogsManijasService) {}
+  
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 1, {
     fileFilter: fileFilter,
@@ -29,7 +30,7 @@ export class BlogsManijasController {
         const blog = createBlogsManijaDto;
         blog.publish = false;
         this.blogsManijasService.resizeImg(blog,files);
-        await this.blogsManijasService.create(blog);
+        await this.blogsManijasService.create(blog, files);
         return res.status(HttpStatus.OK).json({
           message:'Blog has been saved',
         })
@@ -41,13 +42,39 @@ export class BlogsManijasController {
   }
 
   @Get()
-  public async findAll() {
-    return await this.blogsManijasService.findAll();
-  }
-
-  @Get(':id')
-  public async findOne(@Param('id') id: string) {
-    return await this.blogsManijasService.findOne(id);
+  public async findAll(
+    @Res() res: Response
+    ) {
+      try {
+        const blogs = await this.blogsManijasService.findAll();
+        return res.status(HttpStatus.OK).json(blogs);
+      } catch (error) {
+        console.error('Error:', error);
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: 'There was an error processing the request.',
+        });
+      }
+    }
+    
+    @Get(':id')
+    public async findOne(
+      @Param('id') id: string,
+      @Res() res: Response
+    ) {
+    try {
+      const blog = await this.blogsManijasService.findOne(id);
+      if (!blog) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          message: 'Blog was not found.',
+        });
+      }
+      return res.status(HttpStatus.OK).json(blog);
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'There was an error processing the request.',
+      });
+    }
   }
 
   @Patch('edit/:id')
