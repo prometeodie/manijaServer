@@ -8,11 +8,11 @@ export class CreateBlogsManijaDto {
     title: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     subTitle: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     writedBy: string;
 
     @IsString()

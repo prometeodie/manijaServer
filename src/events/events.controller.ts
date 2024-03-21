@@ -7,6 +7,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
 
+
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
@@ -28,46 +29,115 @@ export class EventsController {
     @Res() res: Response ) {
       try{
         const event = createEventDto;
-        event.publish = false;
-        this.eventsService.resizeImg(event.itemName,file);
-        await this.eventsService.create(createEventDto, file);
-        return res.status(HttpStatus.OK).json({
-          message:'Event has been saved',
-        })
+        const regex = /^#(?:[0-9a-fA-F]{3}){1,2}$/i;
+        if (regex.test(event.eventColor)) {
+          event.publish = false;
+          this.eventsService.resizeImg(event.itemName,file);
+          await this.eventsService.create(createEventDto, file);
+          return res.status(HttpStatus.OK).json({
+            message:'Event has been saved',
+          })
+        } else {
+          return res.status(HttpStatus.BAD_REQUEST).json({
+            message: 'eventColor has not an hexadecimal format '
+          });
+        }
+       
       } catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
-          message: 'Error uploading the Event ' + error.message
+          message:   `Error uploading the Event ${error.message}`
         });
       }
   }
 
   @Get()
-  public async findAll() {
-    return this.eventsService.findAll();
+  public async findAll(
+    @Res() res: Response
+    ) {
+      try{
+        const events = await this.eventsService.findAll();
+        return res.status(HttpStatus.OK).json(events);
+      }catch(error){
+        return res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'Error finding the Events ' + error.message
+      });
+    }
   }
-
+  
   @Get(':id')
-  public async findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(+id);
-  }
+  public async findOne(
+    @Param('id') id: string,
+    @Res() res: Response
+    ) {
+      try{
+        const event = await this.eventsService.findOne(id);
+        if (!event) {
+        return res.status(HttpStatus.NOT_FOUND).json({
+          message: 'Blog was not found.',
+        });
+      }
+        return res.status(HttpStatus.OK).json(event);
+      }catch(error){
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: `Error finding the Event ${error.message}`
+        }); 
+      }
+    }
+    
+    @Patch('edit/:id')
+    @UseInterceptors(FileInterceptor('file', {
+      fileFilter: fileFilter,
+      limits: {
+        fileSize: 3145728
+      },
+      storage: diskStorage({
+        destination: saveImage,
+        filename: nameImg
+      })
+    }))
+    public async update(
+      @Param('id') id: string, 
+      @Body() updateEventDto: UpdateEventDto,
+      @UploadedFile() file: Express.Multer.File,
+      @Res() res: Response
+      ) {
+        try{
+          const event = updateEventDto;
+          this.eventsService.resizeImg(event.itemName,file);
+          return this.eventsService.update(+id, updateEventDto);
+        }
+        catch(error){
+          return res.status(HttpStatus.CONFLICT).json({
+            message:'Failed to updated the blog'
+          })
+        }
+      }
+      
+      @Delete('delete/:id')
+      public async remove(
+        @Param('id') id: string,
+        @Res() res: Response){
+          try{
+            return this.eventsService.remove(id);
+          }catch(error){
+            return res.status(HttpStatus.CONFLICT).json({
+              message:'Failed to delete the blog'
+            })      
+        }
+      }
 
-  @Patch('edit/:id')
-  public async update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-    return this.eventsService.update(+id, updateEventDto);
-  }
-
-  @Delete('delete/:id')
-  public async remove(@Param('id') id: string) {
-    return this.eventsService.remove(+id);
-  }
+      @Delete('delete/img/:path(*)')
+      public async removeImg(@Param('path') path: string) {
+        try {
+          await this.eventsService.deleteImage(path);
+          return { success: true, message: 'Image deleted successfully.' };
+        } catch (error) {
+          return { success: false, message: 'Failed to delete image.', error: error.message };
+        }
+      }
 }
 
-
-// TODO:manejar los errores de cada controller con try y catch
-// TODO:ponerle un valor por defecto a publish,mustBeAutomaticallyDeleted y la fecha de creacion
-// TODO: poder guardar las imagenes de cada blog 
-// TODO:chekear si es un codigo hexzadecimal el del color
+// TODO:ver como evitar q cargue la imagen si al postear surge cualquier tipo de error en post y en patch
 // TODO: crear un enum para la categoria
 // TODO:revisar q puedas mandar algunas propiedades vacias
 // TODO:hacer una funcion de borrado automatico cuando la fecha sea mayor a la del evento
-// TODO: hacer que una funciopn para convertir en string en date a la hora de usar la funcion para borrar el evento una vez q la fecha pase

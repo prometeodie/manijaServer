@@ -12,15 +12,15 @@ export class ContactService {
     return `This action returns all contact`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} contact`;
   }
 
-  update(id: number, updateContactDto: UpdateContactDto) {
+  update(id: string, updateContactDto: UpdateContactDto) {
     return `This action updates a #${id} contact`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} contact`;
   }
 }

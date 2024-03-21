@@ -19,16 +19,16 @@ export class BoardgamesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.boardgamesService.findOne(+id);
+    return this.boardgamesService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBoardgameDto: UpdateBoardgameDto) {
-    return this.boardgamesService.update(+id, updateBoardgameDto);
+    return this.boardgamesService.update(id, updateBoardgameDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.boardgamesService.remove(+id);
+    return this.boardgamesService.remove(id);
   }
 }

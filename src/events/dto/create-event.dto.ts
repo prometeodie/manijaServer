@@ -8,15 +8,15 @@ export class CreateEventDto {
     title: string;
     
     @IsDateString()
-    @IsNotEmpty()
+    @IsOptional()
     eventDate: string;
     
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     schedule: string;
     
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     eventPlace: string;
     
     @IsString()

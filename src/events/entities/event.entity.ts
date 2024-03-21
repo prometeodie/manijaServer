@@ -36,4 +36,4 @@ export class ManijaEvent {
 
 }
 
-export const BlogSchema = SchemaFactory.createForClass(ManijaEvent)
+export const EventSchema = SchemaFactory.createForClass(ManijaEvent)

@@ -71,8 +71,8 @@ export class BlogsManijasController {
       return res.status(HttpStatus.OK).json(blog);
     } catch (error) {
       console.error('Error:', error);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: 'There was an error processing the request.',
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: `Error finding the Blog ${error.message}`
       });
     }
   }
@@ -93,12 +93,18 @@ export class BlogsManijasController {
     @Body() updateBlogsManijaDto: UpdateBlogsManijaDto, 
     @UploadedFiles() files: Express.Multer.File[],
     @Res() res: Response ) {
-      const blog = updateBlogsManijaDto;
-      this.blogsManijasService.resizeImg(blog,files);
-      await this.blogsManijasService.update(id, updateBlogsManijaDto);
-      return res.status(HttpStatus.OK).json({
-      message:'Blog has been actualized'
-    })
+      try{
+        const blog = updateBlogsManijaDto;
+        this.blogsManijasService.resizeImg(blog,files);
+        await this.blogsManijasService.update(id, updateBlogsManijaDto);
+        return res.status(HttpStatus.OK).json({
+        message:'Blog has been actualized'
+        })
+    }catch(error){
+      return res.status(HttpStatus.CONFLICT).json({
+        message:'Failed to updated the blog'
+      })
+    }
   }
 
   @Delete('delete/:id')
@@ -110,7 +116,7 @@ export class BlogsManijasController {
         return res.status(HttpStatus.OK).json({
           message:'Blog has been deleted'
         })
-      }catch{
+      }catch(error){
         return res.status(HttpStatus.CONFLICT).json({
           message:'Failed to delete Blog'
         })

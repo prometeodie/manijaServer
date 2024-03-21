@@ -12,15 +12,15 @@ export class BoardgamesService {
     return `This action returns all boardgames`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} boardgame`;
   }
 
-  update(id: number, updateBoardgameDto: UpdateBoardgameDto) {
+  update(id: string, updateBoardgameDto: UpdateBoardgameDto) {
     return `This action updates a #${id} boardgame`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} boardgame`;
   }
 }

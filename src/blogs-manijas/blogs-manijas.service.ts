@@ -78,15 +78,25 @@ export class BlogsManijasService {
           await fs.rm(imagePath, { recursive: true })
         return true;
       } catch (error){
-        console.error('Something wrong happened removing "articles" folder', error)
+        console.error('Something wrong happened removing the file', error)
         throw error;
       }
-  }
-
-  resizeImg(blog:CreateBlogsManijaDto ,files: Express.Multer.File[]){
-      if(files.length > 0){
-        const path = `upload/blogs/${blog.itemName}`
-        files.map((file,i) => imgResizing(`${path}`,path,file.filename,500))
-      }
+    }
+    
+    resizeImg(blog:CreateBlogsManijaDto ,files: Express.Multer.File[]){
+      try{
+        if(files.length > 0){
+          const path = `upload/blogs/${blog.itemName}`
+          try{
+            files.map((file,i) => imgResizing(`${path}`,path,file.filename,500))
+          }catch(error){
+            console.error('Something wrong happened resizing the image', error)
+            throw error;    
+          }
+        }
+      }catch(error){
+        console.error('Something wrong happened resizing the image', error)
+        throw error;    
+    }
   }
 }

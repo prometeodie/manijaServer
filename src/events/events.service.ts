@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UploadedFile } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ErrorManager } from 'src/utils/error.manager';
@@ -39,16 +39,16 @@ export class EventsService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try{
-      const blog = await this.manijaEventModel.findById(id)
-      if ( !blog ){
+      const event = await this.manijaEventModel.findById(id)
+      if ( !event ){
         throw new ErrorManager({
           type:'NOT_FOUND',
           message:'event does not exist'
         })
       }
-      return blog;
+      return event;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
@@ -62,7 +62,7 @@ export class EventsService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try{
       const blog = await this.manijaEventModel.findByIdAndDelete(id)
       if ( !blog ){
@@ -76,10 +76,32 @@ export class EventsService {
     }
   }
 
+  deleteImage = async (imagePath: string) => {
+    try{
+      const fs = require('fs').promises
+      await fs.rm(imagePath, { recursive: true })
+    return true;
+  } catch (error){
+    console.error('Something wrong happened removing the file', error)
+    throw error;
+  }
+}
+
   resizeImg(itemName:string ,file: Express.Multer.File){
+    try{
       if(file){
         const path = `upload/events/${itemName}`
-       imgResizing(`${path}`,path,file.filename,300);
+       try{
+         imgResizing(`${path}`,path,file.filename,300);
+       }catch(error){
+        console.error('Something wrong happened resizing the image', error)
+        throw error;
+       }
       }
+    }catch(error){
+      console.error('Something wrong happened resizing the image', error)
+      throw error;
+    }
   }
+
 }

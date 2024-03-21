@@ -21,6 +21,7 @@ export const nameImg = (req, file, callback) => {
 
 export const fileFilter = (req, file, callback) => {
     if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)){
+        console.error('Invalid format type. Valid extension formats are: JPG, JPEG, PNG, and GIF');  
         return callback('Invalid format type. valid extension format JPG, JPEG, PNG y GIF', false);
     }
     callback(null,true)
@@ -28,7 +29,6 @@ export const fileFilter = (req, file, callback) => {
 
 export const imgResizing =  (filePath:string, newPath:string,fileName:string, size:number)=>{
     pathCreator(`${newPath}/optimize`)
-    console.log(filePath)
     return sharp(`${filePath}/${fileName}`)
         .resize(size)
         .toFile(`${newPath}/optimize/smallS-${fileName}`)            
