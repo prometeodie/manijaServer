@@ -1,4 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { Section } from "src/helpers/section.enum";
 
 
 export class CreateBlogsManijaDto {
@@ -29,7 +30,7 @@ export class CreateBlogsManijaDto {
 
     @IsString()
     @IsOptional()
-    section: string; // juegos, blogs, eventos
+    section: Section; // juegos, blogs, eventos
 
     @IsString()
     @IsOptional()

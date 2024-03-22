@@ -1,4 +1,4 @@
-import { Injectable, UploadedFile } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ErrorManager } from 'src/utils/error.manager';
@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 import { ManijaEvent } from './entities/event.entity';
 import { imgResizing } from 'src/helpers/image.helper';
 
+
 @Injectable()
 
 export class EventsService {
@@ -14,8 +15,7 @@ export class EventsService {
 
   constructor(
     @InjectModel(ManijaEvent.name)
-    private manijaEventModel: Model<ManijaEvent>
-  ){}
+    private manijaEventModel: Model<ManijaEvent>){}
 
   async create(createEventDto: CreateEventDto, file:Express.Multer.File) {
     try{
@@ -102,6 +102,12 @@ export class EventsService {
       console.error('Something wrong happened resizing the image', error)
       throw error;
     }
+  }
+
+
+  async eliminarObjetosVencidos(): Promise<void> {
+    const currentDate = new Date();
+    await this.manijaEventModel.deleteMany({ eventDate: { $lt: currentDate } });
   }
 
 }

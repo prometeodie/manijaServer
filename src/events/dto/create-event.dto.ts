@@ -1,4 +1,5 @@
 import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import {  Section } from "src/helpers/section.enum";
 
 export class CreateEventDto {
 
@@ -9,7 +10,7 @@ export class CreateEventDto {
     
     @IsDateString()
     @IsOptional()
-    eventDate: string;
+    eventDate: Date;
     
     @IsString()
     @IsOptional()
@@ -37,7 +38,7 @@ export class CreateEventDto {
 
     @IsString()
     @IsOptional()
-    section: string;
+    section: Section;
     
     @IsBoolean()
     @IsOptional()

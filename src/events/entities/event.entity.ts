@@ -1,5 +1,6 @@
 
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Section } from "src/helpers/section.enum";
 
 @Schema()
 export class ManijaEvent {
@@ -26,7 +27,7 @@ export class ManijaEvent {
     creationDate: Date;
 
     @Prop({required: true})
-    category: string;
+    section: Section;
 
     @Prop({required: true})
     publish: boolean;

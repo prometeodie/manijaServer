@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, Res, HttpStatus, Logger, Injectable } from '@nestjs/common';
 import { Response } from 'express';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -6,11 +6,15 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { ManijaEvent } from './entities/event.entity';
 
-
+@Injectable()
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
+
+  private readonly logger = new Logger(ManijaEvent.name);
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
@@ -135,9 +139,20 @@ export class EventsController {
           return { success: false, message: 'Failed to delete image.', error: error.message };
         }
       }
+
+
+      @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+      async handleCron() {
+        this.logger.debug('executing job to delete expired events');
+        console.log('entro aca')
+        try {
+          await this.eventsService.eliminarObjetosVencidos();
+          this.logger.debug('expired events deleted correctly.');
+        } catch (error) {
+          this.logger.error(`Error to delete expired events: ${error.message}`);
+        }
+      }
 }
 
 // TODO:ver como evitar q cargue la imagen si al postear surge cualquier tipo de error en post y en patch
-// TODO: crear un enum para la categoria
-// TODO:revisar q puedas mandar algunas propiedades vacias
-// TODO:hacer una funcion de borrado automatico cuando la fecha sea mayor a la del evento
+
