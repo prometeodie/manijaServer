@@ -33,6 +33,10 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     
     @IsString()
     @IsOptional()
+    url : string;
+    
+    @IsString()
+    @IsOptional()
     category: string;
 
     @IsString()

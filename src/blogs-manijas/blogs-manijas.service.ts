@@ -52,7 +52,14 @@ export class BlogsManijasService {
 
   async update(id: string, updateBlog: UpdateBlogsManijaDto){
     try{
-      return await this.blogsManijaModel.findByIdAndUpdate(id, updateBlog, { new: true } );
+      const blog = await this.blogsManijaModel.findByIdAndUpdate(id, updateBlog, { new: true } );
+      if (!blog) {
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'message does not exist'
+        })
+      }
+      return blog;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

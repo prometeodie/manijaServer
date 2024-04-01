@@ -36,7 +36,7 @@ export class BlogsManijasController {
         })
       } catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
-          message: 'Error uploading the Blog ' + error.message
+          message: `Error uploading the Blog ${error.message}`
         });
       }
   }
@@ -51,7 +51,7 @@ export class BlogsManijasController {
       } catch (error) {
         console.error('Error:', error);
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: 'There was an error processing the request.',
+          message: `There was an error processing the request ${error.message}`,
         });
       }
     }
@@ -63,14 +63,8 @@ export class BlogsManijasController {
     ) {
     try {
       const blog = await this.blogsManijasService.findOne(id);
-      if (!blog) {
-        return res.status(HttpStatus.NOT_FOUND).json({
-          message: 'Blog was not found.',
-        });
-      }
       return res.status(HttpStatus.OK).json(blog);
     } catch (error) {
-      console.error('Error:', error);
       return res.status(HttpStatus.BAD_REQUEST).json({
         message: `Error finding the Blog ${error.message}`
       });
@@ -102,7 +96,7 @@ export class BlogsManijasController {
         })
     }catch(error){
       return res.status(HttpStatus.CONFLICT).json({
-        message:'Failed to updated the blog'
+        message:`Failed to updated the blog ${error.message}`
       })
     }
   }

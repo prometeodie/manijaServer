@@ -24,6 +24,9 @@ export class ManijaEvent {
     eventColor: string;
 
     @Prop({required: true})
+    url: string;
+
+    @Prop({required: true})
     creationDate: Date;
 
     @Prop({required: true})

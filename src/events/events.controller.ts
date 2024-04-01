@@ -63,7 +63,7 @@ export class EventsController {
         return res.status(HttpStatus.OK).json(events);
       }catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
-        message: 'Error finding the Events ' + error.message
+        message: `'Error finding the Events ${error.message}`
       });
     }
   }
@@ -75,11 +75,6 @@ export class EventsController {
     ) {
       try{
         const event = await this.eventsService.findOne(id);
-        if (!event) {
-        return res.status(HttpStatus.NOT_FOUND).json({
-          message: 'Blog was not found.',
-        });
-      }
         return res.status(HttpStatus.OK).json(event);
       }catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
@@ -106,13 +101,16 @@ export class EventsController {
       @Res() res: Response
       ) {
         try{
+          const updatedEvent = this.eventsService.update(id, updateEventDto);;
           const event = updateEventDto;
           this.eventsService.resizeImg(event.itemName,file);
-          return this.eventsService.update(+id, updateEventDto);
+          return res.status(HttpStatus.OK).json({
+            message:'Event has been actualized'
+            })
         }
         catch(error){
           return res.status(HttpStatus.CONFLICT).json({
-            message:'Failed to updated the blog'
+            message:`Failed to updated the blog ${error.message}`
           })
         }
       }
@@ -122,10 +120,13 @@ export class EventsController {
         @Param('id') id: string,
         @Res() res: Response){
           try{
-            return this.eventsService.remove(id);
+            await this.eventsService.remove(id);
+            return res.status(HttpStatus.OK).json({
+              message:'Deleted'
+            })   
           }catch(error){
             return res.status(HttpStatus.CONFLICT).json({
-              message:'Failed to delete the blog'
+              message:`Failed to delete the blog ${error.message}`
             })      
         }
       }
@@ -136,7 +137,7 @@ export class EventsController {
           await this.eventsService.deleteImage(path);
           return { success: true, message: 'Image deleted successfully.' };
         } catch (error) {
-          return { success: false, message: 'Failed to delete image.', error: error.message };
+          return { success: false, message:`Failed to delete the image ${error.message}` };
         }
       }
 
@@ -144,7 +145,6 @@ export class EventsController {
       @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
       async handleCron() {
         this.logger.debug('executing job to delete expired events');
-        console.log('entro aca')
         try {
           await this.eventsService.eliminarObjetosVencidos();
           this.logger.debug('expired events deleted correctly.');

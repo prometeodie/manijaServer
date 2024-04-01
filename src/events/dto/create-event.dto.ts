@@ -35,6 +35,10 @@ export class CreateEventDto {
     @IsString()
     @IsOptional()
     itemName: string;
+    
+    @IsString()
+    @IsOptional()
+    url : string;
 
     @IsString()
     @IsOptional()

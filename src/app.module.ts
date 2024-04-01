@@ -7,6 +7,8 @@ import { BoardgamesModule } from './boardgames/boardgames.module';
 import { BlogsManijasModule } from './blogs-manijas/blogs-manijas.module';
 import { EventsModule } from './events/events.module';
 import { ContactModule } from './contact/contact.module';
+import { AboutController } from './about/about.controller';
+import { AboutModule } from './about/about.module';
 
 @Module({
   imports: [
@@ -16,8 +18,8 @@ import { ContactModule } from './contact/contact.module';
     BoardgamesModule,
     BlogsManijasModule, 
     EventsModule, 
-    ContactModule],
-  controllers: [],
+    ContactModule, AboutModule],
+  controllers: [AboutController],
   providers: [],
 })
 export class AppModule {}

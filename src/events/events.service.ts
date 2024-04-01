@@ -54,23 +54,30 @@ export class EventsService {
     }
   }
 
-  async update(id: number, updateEventDto: UpdateEventDto) {
+  async update(id: string, updateEventDto: UpdateEventDto) {
     try{
-      return await this.manijaEventModel.findByIdAndUpdate(id, updateEventDto, { new: true } );
-    }catch(error){
-      throw ErrorManager.createSignatureError(error.message);
-    }
-  }
-
-  async remove(id: string) {
-    try{
-      const blog = await this.manijaEventModel.findByIdAndDelete(id)
-      if ( !blog ){
+      const event = await this.manijaEventModel.findByIdAndUpdate(id, updateEventDto, { new: true } );
+      if (!event) {
         throw new ErrorManager({
           type:'NOT_FOUND',
           message:'event does not exist'
         })
       }
+      return event;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
+  async remove(id: string,) {
+    try{
+      const event = await this.manijaEventModel.findByIdAndDelete(id)
+      if ( !event ){
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'event does not exist'
+        })}
+      return event;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
@@ -107,7 +114,11 @@ export class EventsService {
 
   async eliminarObjetosVencidos(): Promise<void> {
     const currentDate = new Date();
-    await this.manijaEventModel.deleteMany({ eventDate: { $lt: currentDate } });
+    try{
+      await this.manijaEventModel.deleteMany({ eventDate: { $lt: currentDate } });
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
   }
 
 }
