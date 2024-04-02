@@ -22,7 +22,6 @@ export class EventsService {
       const newEvent = await new this.manijaEventModel( createEventDto );
       newEvent.creationDate = new Date;
       newEvent.mustBeAutomaticallyDeleted = false;
-      newEvent.publish = false;
       newEvent.creationDate = new Date;
       newEvent.imgName = file.filename;
       return newEvent.save()

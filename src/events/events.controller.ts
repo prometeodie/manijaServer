@@ -63,7 +63,7 @@ export class EventsController {
         return res.status(HttpStatus.OK).json(events);
       }catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `'Error finding the Events ${error.message}`
+        message: `Error finding the Events ${error.message}`
       });
     }
   }
@@ -101,7 +101,7 @@ export class EventsController {
       @Res() res: Response
       ) {
         try{
-          const updatedEvent = this.eventsService.update(id, updateEventDto);;
+          await this.eventsService.update(id, updateEventDto);;
           const event = updateEventDto;
           this.eventsService.resizeImg(event.itemName,file);
           return res.status(HttpStatus.OK).json({
@@ -110,7 +110,7 @@ export class EventsController {
         }
         catch(error){
           return res.status(HttpStatus.CONFLICT).json({
-            message:`Failed to updated the blog ${error.message}`
+            message:`Failed to updated the event ${error.message}`
           })
         }
       }
@@ -126,7 +126,7 @@ export class EventsController {
             })   
           }catch(error){
             return res.status(HttpStatus.CONFLICT).json({
-              message:`Failed to delete the blog ${error.message}`
+              message:`Failed to delete the event ${error.message}`
             })      
         }
       }

@@ -3,7 +3,6 @@ import { Response } from 'express';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
-import { error } from 'console';
 
 @Controller('message')
 export class ContactController {
@@ -24,7 +23,7 @@ export class ContactController {
     return this.contactService.create(createContactDto);
   }
 
-  @Get()
+  @Get('all')
   public async findAll(
     @Res() res: Response
   ) {
