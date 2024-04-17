@@ -13,6 +13,6 @@ export class UpdateAboutDto extends PartialType(CreateAboutDto) {
     
     @IsString()
     @IsOptional()
-    imgName: string[];
+    imgName: string;
     
 }

@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
-import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
-import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { BlogsManija } from './entities/blogs-manija.entity';
+import { Model } from 'mongoose';
 import { ErrorManager } from 'src/utils/error.manager';
-import { imgResizing } from 'src/helpers/image.helper';
+import { imgResizing  } from 'src/helpers/image.helper';
+import * as fs from 'node:fs';
+
+import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
+import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
+import { BlogsManija } from './entities/blogs-manija.entity';
+
 
 @Injectable()
 export class BlogsManijasService {
 
+  readonly commonPath: string = 'upload/BLOGS';
 
   constructor(
     @InjectModel(BlogsManija.name) 
@@ -38,10 +42,11 @@ export class BlogsManijasService {
   async findOne(id: string) {
     try{
       const blog = await this.blogsManijaModel.findById(id)
+
       if ( !blog ){
         throw new ErrorManager({
           type:'NOT_FOUND',
-          message:'blog does not exist'
+          message:'Blog does not exist'
         })
       }
       return blog;
@@ -52,11 +57,13 @@ export class BlogsManijasService {
 
   async update(id: string, updateBlog: UpdateBlogsManijaDto){
     try{
+
       const blog = await this.blogsManijaModel.findByIdAndUpdate(id, updateBlog, { new: true } );
+
       if (!blog) {
         throw new ErrorManager({
           type:'NOT_FOUND',
-          message:'message does not exist'
+          message:'Blog does not exist'
         })
       }
       return blog;
@@ -71,7 +78,7 @@ export class BlogsManijasService {
       if ( !blog ){
         throw new ErrorManager({
           type:'NOT_FOUND',
-          message:'blog does not exist'
+          message:'Blog does not exist'
         })
       }
     }catch(error){
@@ -93,7 +100,7 @@ export class BlogsManijasService {
     resizeImg(blog:CreateBlogsManijaDto ,files: Express.Multer.File[]){
       try{
         if(files.length > 0){
-          const path = `upload/blogs/${blog.itemName}`
+          const path = `${this.commonPath}/${blog.itemName}`
           try{
             files.map((file,i) => imgResizing(`${path}`,path,file.filename,500))
           }catch(error){
@@ -106,4 +113,17 @@ export class BlogsManijasService {
         throw error;    
     }
   }
-}
+
+  deleteImgCatch(files: Express.Multer.File[], updateBlogsManijaDto: UpdateBlogsManijaDto | CreateBlogsManijaDto){
+    files.map((file)=>{
+      const imgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/${file.filename}`
+      const optimizeImgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/optimize/smallS-${file.filename}`
+      setTimeout(()=>{
+        if (fs.existsSync(imgPath)) {
+        this.deleteImage(imgPath)
+        this.deleteImage(optimizeImgPath)
+      }
+      },5000)
+    })
+  }
+ }

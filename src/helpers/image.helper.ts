@@ -39,3 +39,4 @@ const pathCreator = (path:string)=>{
         fs.mkdirSync(path);
     }
 }
+

@@ -35,7 +35,9 @@ export class ContactService {
 
   async findOne(id: string) {
     try{
+
       const event = await this.manijaContacModel.findById(id)
+      
       if ( !event ){
         throw new ErrorManager({
           type:'NOT_FOUND',

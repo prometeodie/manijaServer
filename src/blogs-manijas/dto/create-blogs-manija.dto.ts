@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { Section } from "src/helpers/section.enum";
 
 
@@ -16,7 +16,7 @@ export class CreateBlogsManijaDto {
     @IsOptional()
     writedBy: string;
 
-    @IsString()
+    @IsArray()
     @IsNotEmpty()
     category:string[]
     
@@ -24,17 +24,20 @@ export class CreateBlogsManijaDto {
     @MinLength(20)
     blogContent: string;
 
-    @IsString()
+    @IsArray()
     @IsOptional()
     imgName: string[];
 
     @IsString()
-    @IsOptional()
-    section: Section; // juegos, blogs, eventos
+    @IsNotEmpty()
+    @IsEnum(['BLOGS'],{
+        message:'Valid Section value Requiered'
+    })
+    section:Section
 
     @IsString()
-    @IsOptional()
-    itemName: string; // zombiecide, brass, kinmo...
+    @IsNotEmpty()
+    itemName: string; //Is the title without spaces
 
     @IsBoolean()
     @IsOptional()

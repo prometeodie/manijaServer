@@ -1,0 +1,6 @@
+export enum CategoryGame {
+    EUROGAME = 'EUROGAME',
+    AMERITRASHGAME = 'AMAERITRASHGAME',
+    PARTYGAME = 'PARTYGAME',
+    FILLER = 'FILLER',
+}

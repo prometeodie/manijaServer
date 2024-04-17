@@ -7,6 +7,7 @@ import { diskStorage } from 'multer';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { Response } from 'express';
 
+
 @Controller('blogsManijas')
 export class BlogsManijasController {
   constructor(private readonly blogsManijasService: BlogsManijasService) {}
@@ -35,6 +36,7 @@ export class BlogsManijasController {
           message:'Blog has been saved',
         })
       } catch(error){
+          this.blogsManijasService.deleteImgCatch(files, createBlogsManijaDto)
         return res.status(HttpStatus.BAD_REQUEST).json({
           message: `Error uploading the Blog ${error.message}`
         });
@@ -79,7 +81,7 @@ export class BlogsManijasController {
     },
     storage: diskStorage({
       destination: saveImage,
-      filename: nameImg
+      filename: nameImg,
     })
   }))
   public async update(
@@ -95,6 +97,8 @@ export class BlogsManijasController {
         message:'Blog has been actualized'
         })
     }catch(error){
+        this.blogsManijasService.deleteImgCatch(files, updateBlogsManijaDto)
+        // TODO:buscar una mejor la solucion para evitar que se carguen imagenes en caso de que haya un error, ponerlo en el servicio apra reutilizarlo en post tamb
       return res.status(HttpStatus.CONFLICT).json({
         message:`Failed to updated the blog ${error.message}`
       })

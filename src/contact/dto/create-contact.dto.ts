@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Section } from "src/helpers/section.enum";
 
 
@@ -21,5 +21,8 @@ export class CreateContactDto {
     
     @IsString()
     @IsNotEmpty()
-    section:Section; 
+    @IsEnum(['CONTACT_MESSAGES'],{
+        message:'Valid Section value Requiered'
+    })
+    section:Section
 }

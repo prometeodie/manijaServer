@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsBoolean, IsDateString, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 import {  Section } from "src/helpers/section.enum";
 
 export class CreateEventDto {
@@ -41,14 +41,17 @@ export class CreateEventDto {
     url : string;
 
     @IsString()
-    @IsOptional()
-    section: Section;
+    @IsNotEmpty()
+    @IsEnum(['EVENTS'],{
+        message:'Valid Section value Requiered'
+    })
+    section:Section
     
     @IsBoolean()
     @IsOptional()
     publish: boolean;
     
     @IsBoolean()
-    @IsOptional()
+    @IsNotEmpty()
     mustBeAutomaticallyDeleted: boolean;
 }

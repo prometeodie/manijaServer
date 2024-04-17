@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { ErrorManager } from 'src/utils/error.manager';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import * as fs from 'node:fs';
+
 import { CreateAboutDto } from './dto/create-about.dto';
 import { UpdateAboutDto } from './dto/update-about.dto';
 import { imgResizing } from 'src/helpers/image.helper';
 import { AboutSection } from './entities/about.entity';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { ErrorManager } from 'src/utils/error.manager';
+
 
 @Injectable()
 export class AboutService {
+
+  readonly commonPath: string = 'upload/ABOUT';
   
   constructor(
   @InjectModel(AboutSection.name)
@@ -36,7 +41,9 @@ export class AboutService {
 
   async findOne(id: string) {
     try{
+
       const aboutSection = await this.aboutSectionModel.findById(id)
+
       if ( !aboutSection){
         throw new ErrorManager({
           type:'NOT_FOUND',
@@ -92,7 +99,8 @@ export class AboutService {
   resizeImg(itemName:string ,file: Express.Multer.File){
     try{
       if(file){
-        const path = `upload/about/${itemName}`
+        console.log('entro en el resize')
+        const path = `${this.commonPath}/${itemName}`
        try{
          imgResizing(`${path}`,path,file.filename,300);
        }catch(error){
@@ -105,4 +113,18 @@ export class AboutService {
       throw error;
     }
   }
-}
+
+
+  deleteImgCatch(file: Express.Multer.File, updateBlogsManijaDto: UpdateAboutDto | CreateAboutDto){
+    
+      const imgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/${file.filename}`
+      const optimizeImgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/optimize/smallS-${file.filename}`
+        setTimeout(()=>{
+          if (fs.existsSync(imgPath)) {
+          this.deleteImage(imgPath)
+          this.deleteImage(optimizeImgPath)
+        }
+        },5000)
+    }
+  }
+

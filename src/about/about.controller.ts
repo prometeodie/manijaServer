@@ -32,11 +32,15 @@ export class AboutController {
       try{
         const aboutSection = createAboutDto;
         this.aboutService.resizeImg(aboutSection.itemName,file);
+        // TODO:revisar por que no crea el optimize y 
+        // no borra cuando sale por el catch
         await this.aboutService.create(createAboutDto, file);
         return res.status(HttpStatus.OK).json({
           message:'About section has been saved',
         })
       }catch(error){
+        this.aboutService.deleteImgCatch(file, createAboutDto)
+        // TODO:borrar si cambio el meteodo
         return res.status(HttpStatus.BAD_REQUEST).json({
           message:   `Error uploading the About Section ${error.message}`
         });
@@ -88,14 +92,15 @@ export class AboutController {
     @Res() res: Response
     ) {
       try{
-        await this.aboutService.update(id, updateAboutDto);
         const aboutSection = updateAboutDto;
         this.aboutService.resizeImg(aboutSection.itemName,file);
+        await this.aboutService.update(id, updateAboutDto);
         return res.status(HttpStatus.OK).json({
           message:'About Section has been actualized'
           })
       }
       catch(error){
+        this.aboutService.deleteImgCatch(file, updateAboutDto);
         return res.status(HttpStatus.CONFLICT).json({
           message:`Failed to updated the About Section ${error.message}`
         })

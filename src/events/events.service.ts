@@ -21,8 +21,6 @@ export class EventsService {
     try{
       const newEvent = await new this.manijaEventModel( createEventDto );
       newEvent.creationDate = new Date;
-      newEvent.mustBeAutomaticallyDeleted = false;
-      newEvent.creationDate = new Date;
       newEvent.imgName = file.filename;
       return newEvent.save()
     }catch(error){
@@ -39,8 +37,9 @@ export class EventsService {
   }
 
   async findOne(id: string) {
-    try{
+    try{      
       const event = await this.manijaEventModel.findById(id)
+      
       if ( !event ){
         throw new ErrorManager({
           type:'NOT_FOUND',

@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { Section } from "src/helpers/section.enum";
 
 
@@ -9,7 +9,7 @@ export class CreateAboutDto {
     
     @IsString()
     @IsOptional()
-    imgName: string[];
+    imgName: string;
 
     @IsString()
     @IsOptional()
@@ -21,6 +21,9 @@ export class CreateAboutDto {
     
     @IsString()
     @IsNotEmpty()
-    section:Section; 
+    @IsEnum(['ABOUT'],{
+        message:'Valid Section value Requiered'
+    })
+    section:Section
 
 }
