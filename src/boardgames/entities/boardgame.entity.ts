@@ -29,7 +29,7 @@ export class Boardgame {
     @Prop({required: true})
     manijometro: number;
 
-    @Prop({required: true})
+    @Prop({required: false})
     manijometroPosition: number;
 
     @Prop({required: true})
@@ -63,6 +63,7 @@ export class Boardgame {
     publish:Boolean;
 }
 export const BoardgameSchema = SchemaFactory.createForClass(Boardgame);
+export const BoardgameBackUpSchema = SchemaFactory.createForClass(Boardgame);
 
 
 

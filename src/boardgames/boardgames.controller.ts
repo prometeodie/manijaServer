@@ -32,7 +32,7 @@ export class BoardgamesController {
     @Res() res: Response
   ) {
     try {
-      const boardgames = await this.boardgamesService.findAll();
+      const boardgames = this.boardgamesService.AddManijometroPosition(await this.boardgamesService.findAll()) ;
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
@@ -47,7 +47,7 @@ export class BoardgamesController {
     @Res() res: Response
   ) {
     try {
-      const boardgames = await this.boardgamesService.findPublishedBoardgames();
+      const boardgames = this.boardgamesService.AddManijometroPosition(await this.boardgamesService.findPublishedBoardgames());
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
@@ -68,7 +68,10 @@ export class BoardgamesController {
     @Res() res: Response
   ) {
     try{
+      const boardgames = await this.boardgamesService.AddManijometroPosition(await this.boardgamesService.findPublishedBoardgames());
       const boardgame = await this.boardgamesService.findOne(id);
+      const position = boardgames.findIndex(boardgamePosition => boardgamePosition.title === boardgame.title );
+      boardgame.manijometroPosition = position +1;
       return res.status(HttpStatus.OK).json(boardgame);
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({
@@ -84,7 +87,7 @@ export class BoardgamesController {
     @Res() res:Response
   ) {
     try{
-      const boardgame = await this.boardgamesService.update(id, updateBoardgameDto);
+      await this.boardgamesService.update(id, updateBoardgameDto);
       return res.status(HttpStatus.OK).json({
         message:'Boardgame has been actualized'
         })
@@ -111,6 +114,7 @@ export class BoardgamesController {
       })
     }
   }
+
 }
 
 

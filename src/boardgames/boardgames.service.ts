@@ -17,8 +17,13 @@ export class BoardgamesService {
   async create(createBoardgameDto: CreateBoardgameDto) {
     try{
       const newBoardGame = await  new this.boardgameModel( createBoardgameDto );
+    if((await this.findBoardgamesByTitle(newBoardGame.title)).length > 1){
+      throw new ErrorManager({
+        type:'CONFLICT',
+        message:'boardgame alredy exist'
+      })
+    }
       newBoardGame.creationDate = new Date();
-      newBoardGame.manijometroPosition = 1;
       return await newBoardGame.save();
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
@@ -98,4 +103,12 @@ export class BoardgamesService {
     }
   }
 
+  AddManijometroPosition(boardgames: Boardgame[]){
+
+    const boards = boardgames.sort((a, b)=> b.manijometro - a.manijometro).map((board,i)=>{
+       board.manijometroPosition = i+1;
+       return board;
+    })
+    return boards
+  }
 }
