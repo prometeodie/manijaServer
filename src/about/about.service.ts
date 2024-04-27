@@ -102,7 +102,7 @@ export class AboutService {
         console.log('entro en el resize')
         const path = `${this.commonPath}/${itemName}`
        try{
-         imgResizing(`${path}`,path,file.filename,300);
+         imgResizing(path,file.filename,300);
        }catch(error){
         console.error('Something wrong happened resizing the image', error)
         throw error;

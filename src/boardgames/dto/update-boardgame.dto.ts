@@ -7,6 +7,7 @@ import { Replayability } from '../utils/Replayability.enum';
 import { Section } from 'src/helpers/section.enum';
 import { Transform } from 'class-transformer';
 import { StringToNumberTransformer } from '../utils/tranformToNumber';
+import { Reel } from '../utils/reel.class';
 
 export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
     @IsString()
@@ -68,12 +69,12 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
 
     @IsObject()
     @IsOptional()
-    reel: string;
+    reel: Reel;
 
 
     @IsString()
     @IsOptional()
-    @IsEnum(['BOARDGAMES', 'BLOGS', 'EVENTS', 'CONTACT_MESSAGES', 'ABOUT'],{
+    @IsEnum(['BOARDGAMES'],{
         message:'Valid Section value Requiered'
     })
     section:Section
@@ -87,7 +88,7 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
     imgName:string[];
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     itemName: string;
 
     @IsBoolean()

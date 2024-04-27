@@ -30,7 +30,7 @@ export class CreateBlogsManijaDto {
 
     @IsString()
     @IsNotEmpty()
-    @IsEnum(['BLOGS'],{
+    @IsEnum([Section.BLOGS],{
         message:'Valid Section value Requiered'
     })
     section:Section

@@ -102,7 +102,7 @@ export class BlogsManijasService {
         if(files.length > 0){
           const path = `${this.commonPath}/${blog.itemName}`
           try{
-            files.map((file,i) => imgResizing(`${path}`,path,file.filename,500))
+            files.map((file,i) => imgResizing(path,file.filename,500))
           }catch(error){
             console.error('Something wrong happened resizing the image', error)
             throw error;    

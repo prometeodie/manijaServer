@@ -1,13 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import { CreateBoardgameDto } from './dto/create-boardgame.dto';
 import { UpdateBoardgameDto } from './dto/update-boardgame.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Boardgame } from './entities/boardgame.entity';
 import { Model } from 'mongoose';
 import { ErrorManager } from 'src/utils/error.manager';
+import * as fs from 'node:fs';
+
+import { imgResizing } from 'src/helpers/image.helper';
+import { UploadImgDto } from '../blogs-manijas/dto/upload-img-manija.dto';
+
 
 @Injectable()
 export class BoardgamesService {
+  
+  readonly commonPath: string = 'upload/BOARDGAMES';
 
   constructor(
     @InjectModel(Boardgame.name) 
@@ -24,7 +31,8 @@ export class BoardgamesService {
       })
     }
       newBoardGame.creationDate = new Date();
-      return await newBoardGame.save();
+      await newBoardGame.save();
+      return newBoardGame.id;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
@@ -73,9 +81,7 @@ export class BoardgamesService {
 
   async update(id: string, updateBoardgameDto: UpdateBoardgameDto) {
     try{
-
       const boardgame = await this.boardgameModel.findByIdAndUpdate(id, updateBoardgameDto, { new: true } );
-
       if (!boardgame) {
         throw new ErrorManager({
           type:'NOT_FOUND',
@@ -111,4 +117,45 @@ export class BoardgamesService {
     })
     return boards
   }
+
+  resizeImg(itemName:string[], boardName:string){
+    try{
+      if(itemName.length > 0){
+        const path = `${this.commonPath}/${boardName}`
+        try{
+          itemName.map((file) => imgResizing(path,file,500))
+          return true;
+        }catch(error){
+          console.error('Something wrong happened resizing the image', error)
+          throw error;    
+        }
+      }
+    }catch(error){
+      console.error('Something wrong happened resizing the image', error)
+      throw error;    
+  }
+}
+
+deleteImage = async (imagePath: string) => {
+  try{
+    const fs = require('fs').promises
+    await fs.rm(imagePath, { recursive: true })
+  return true;
+} catch (error){
+  console.error('Something wrong happened removing the file', error)
+  throw error;
+}
+}
+
+deleteImgCatch(req:UploadImgDto, files: Express.Multer.File[]){
+  files.map((file)=>{
+    const imgPath: string = `${this.commonPath}/${req.itemName}/${file.filename}`
+    setTimeout(()=>{
+      if (fs.existsSync(imgPath)) {
+      this.deleteImage(imgPath)
+    }
+    },5000)
+  })
+}
+
 }

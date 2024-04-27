@@ -1,20 +1,20 @@
-import { IsArray, IsBooleanString, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, IsBoolean } from 'class-validator';
 
 import { Section } from "src/helpers/section.enum";
-import { Reel } from "../utils/reel.class";
 import { CategoryGame } from "../utils/game.enum";
 import { Dificulty } from "../utils/dificulty.enum";
 import { Replayability } from "../utils/Replayability.enum";
 
 import { StringToNumberTransformer } from "../utils/tranformToNumber";
 import { Transform } from "class-transformer"; 
+import { Reel } from '../utils/reel.class';
 
 
 
 export class CreateBoardgameDto {
     
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     title: string;
 
     @IsString()
@@ -54,14 +54,14 @@ export class CreateBoardgameDto {
 
     @IsString()
     @IsOptional()
-    @IsEnum(['LOW', 'MEDIUM', 'HIGH'],{
+    @IsEnum([Dificulty.LOW, Dificulty.MEDIUM, Dificulty.HIGH],{
         message:'Valid dificulty value Requiered'
     })
     dificulty: Dificulty;
 
     @IsString()
     @IsOptional()
-    @IsEnum(['LOW', 'MEDIUM', 'HIGH'],{
+    @IsEnum([Replayability.LOW, Replayability.MEDIUM, Replayability.HIGH],{
         message:'Valid replayability value Requiered'
     })
     replayability: Replayability;
@@ -72,11 +72,11 @@ export class CreateBoardgameDto {
 
     @IsObject()
     @IsOptional()
-    reel: string;
+    reel: Reel;
 
     @IsString()
-    @IsNotEmpty()
-    @IsEnum(['BOARDGAMES'],{
+    @IsOptional()
+    @IsEnum([Section.BOARDGAMES],{
         message:'Valid Section value Requiered'
     })
     section:Section
@@ -90,7 +90,7 @@ export class CreateBoardgameDto {
     imgName:string[];
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     itemName: string; //Is the title without spaces
     
     @IsBoolean()
