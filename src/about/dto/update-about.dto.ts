@@ -9,10 +9,6 @@ export class UpdateAboutDto extends PartialType(CreateAboutDto) {
     
     @IsString()
     @IsOptional()
-    subject:string; 
-    
-    @IsString()
-    @IsOptional()
     imgName: string;
     
 }

@@ -19,12 +19,10 @@ export class AboutService {
   @InjectModel(AboutSection.name)
   private aboutSectionModel: Model<AboutSection>){}
 
-  async create(createAboutDto: CreateAboutDto, file:Express.Multer.File) {
-    try{
+  async create(createAboutDto: CreateAboutDto) {
+    try{  
       const newAboutSection = await new this.aboutSectionModel( createAboutDto );
       newAboutSection.creationDate = new Date;
-      newAboutSection.imgName = file.filename;
-      newAboutSection.publish = false;
       return newAboutSection.save()
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
@@ -85,7 +83,7 @@ export class AboutService {
     }
   }
 
-  deleteImage = async (imagePath: string) => {
+  async deleteImage(imagePath: string) {
     try{
       const fs = require('fs').promises
       await fs.rm(imagePath, { recursive: true })
@@ -96,35 +94,31 @@ export class AboutService {
     }
   }
 
-  resizeImg(itemName:string ,file: Express.Multer.File){
+  async resizeImg(fileName: string){
     try{
-      if(file){
-        console.log('entro en el resize')
-        const path = `${this.commonPath}/${itemName}`
-       try{
-         imgResizing(path,file.filename,300);
-       }catch(error){
-        console.error('Something wrong happened resizing the image', error)
-        throw error;
-       }
+      if(fileName){
+        const path = `${this.commonPath}`
+        try{
+          await imgResizing(path,fileName,500)
+        }catch(error){
+          console.error('Something wrong happened resizing the image', error)
+          throw error;    
+        }
       }
     }catch(error){
       console.error('Something wrong happened resizing the image', error)
-      throw error;
-    }
+      throw error;    
   }
+}
 
-
-  deleteImgCatch(file: Express.Multer.File, updateBlogsManijaDto: UpdateAboutDto | CreateAboutDto){
-    
-      const imgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/${file.filename}`
-      const optimizeImgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/optimize/smallS-${file.filename}`
-        setTimeout(()=>{
-          if (fs.existsSync(imgPath)) {
-          this.deleteImage(imgPath)
-          this.deleteImage(optimizeImgPath)
+deleteImgCatch(fileName: string){
+  const imgPath = `${this.commonPath}/${fileName}`
+    setTimeout(()=>{
+      if (fs.existsSync(imgPath)) {
+      this.deleteImage(imgPath)
         }
-        },5000)
+      },5000)
     }
-  }
+}
+  
 

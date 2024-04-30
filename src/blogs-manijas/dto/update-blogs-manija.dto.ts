@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateBlogsManijaDto } from './create-blogs-manija.dto';
-import { IsArray, IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { Section } from 'src/helpers/section.enum';
 
 export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
@@ -33,11 +33,10 @@ export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
 
     @IsString()
     @IsOptional()
-    section: Section;
-
-    @IsString()
-    @IsOptional()
-    itemName: string; 
+    @IsEnum([Section.BLOGS],{
+        message:'Valid Section value Requiered'
+    })
+    section:Section
     
     @IsBoolean()
     @IsOptional()

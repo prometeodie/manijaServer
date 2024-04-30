@@ -21,7 +21,7 @@ export class CreateContactDto {
     
     @IsString()
     @IsNotEmpty()
-    @IsEnum(['CONTACT_MESSAGES'],{
+    @IsEnum([Section.CONTACT_MESSAGES],{
         message:'Valid Section value Requiered'
     })
     section:Section

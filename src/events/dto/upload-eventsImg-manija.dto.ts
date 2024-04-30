@@ -6,7 +6,7 @@ export class UploadImgDto {
 
     @IsString()
     @IsNotEmpty()
-    @IsEnum([Section.BOARDGAMES],{
+    @IsEnum([Section.EVENTS],{
         message:'Valid Section value Requiered'
     })
     section:Section
@@ -14,6 +14,5 @@ export class UploadImgDto {
     @IsString()
     @IsNotEmpty()
     itemName: string; //Is the title without spaces
-
    
 }

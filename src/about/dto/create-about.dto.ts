@@ -11,10 +11,6 @@ export class CreateAboutDto {
     @IsOptional()
     imgName: string;
 
-    @IsString()
-    @IsOptional()
-    itemName: string;
-
     @IsBoolean()
     @IsOptional()
     publish: boolean;

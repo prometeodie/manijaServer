@@ -16,6 +16,9 @@ export class BlogsManija {
     @Prop({minlength:20, required: true})
     blogContent:string;
 
+    @Prop({required: true})
+    category:string[]
+
     @Prop({required:true})
     section:Section
 

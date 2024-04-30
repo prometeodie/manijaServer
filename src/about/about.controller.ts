@@ -3,10 +3,10 @@ import { Response } from 'express';
 import { AboutService } from './about.service';
 import { CreateAboutDto } from './dto/create-about.dto';
 import { UpdateAboutDto } from './dto/update-about.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
+import { fileFilter, nameImg } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { aboutSaveImage } from './helper/saveImg.helper';
 
 
 @Controller('about')
@@ -15,37 +15,57 @@ export class AboutController {
   constructor(private readonly aboutService: AboutService) {}
 
   @Post('upload')
+  public async create(
+    @Body() createAboutDto: CreateAboutDto,
+    @Res() res: Response ) {
+      try{
+        const aboutSection = createAboutDto;
+        await this.aboutService.create(aboutSection);
+        return res.status(HttpStatus.OK).json({
+          message:'About section has been saved',
+        })
+      }catch(error){
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message:   `Error uploading the About Section ${error.message}`
+        });
+      }
+  }
+
+  @Post('uploadImg/:id')
   @UseInterceptors(FileInterceptor('file', {
     fileFilter: fileFilter,
     limits: {
       fileSize: 3145728
     },
     storage: diskStorage({
-      destination: saveImage,
+      destination: aboutSaveImage,
       filename: nameImg
     })
   }))
-  public async create(
-    @Body() createAboutDto: CreateAboutDto,
+  public async uploadImg(
+    @Res() res: Response,
     @UploadedFile() file: Express.Multer.File,
-    @Res() res: Response ) {
-      try{
-        const aboutSection = createAboutDto;
-        this.aboutService.resizeImg(aboutSection.itemName,file);
-        // TODO:revisar por que no crea el optimize y 
-        // no borra cuando sale por el catch
-        await this.aboutService.create(createAboutDto, file);
-        return res.status(HttpStatus.OK).json({
-          message:'About section has been saved',
-        })
-      }catch(error){
-        this.aboutService.deleteImgCatch(file, createAboutDto)
-        // TODO:borrar si cambio el meteodo
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:   `Error uploading the About Section ${error.message}`
-        });
-      }
+    @Param('id') id: string, 
+  ){
+    try{
+      const aboutSection = await this.aboutService.findOne(id);
+      const imgName = file.filename;
+      this.aboutService.resizeImg(imgName)
+      aboutSection.imgName = imgName
+      const {_id, ...newAboutSec} = aboutSection.toJSON();
+      const updateAboutSection = newAboutSec;
+      this.aboutService.update(id,updateAboutSection)
+      return res.status(HttpStatus.OK).json({
+        message:'img has been saved',
+      })
+    }catch(error){
+      this.aboutService.deleteImgCatch(file.filename)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request ${error.message}`,
+      });
+    }
   }
+
 
   @Get()
   public async findAll( @Res() res: Response
@@ -75,32 +95,19 @@ export class AboutController {
   }
 
   @Patch('edit/:id')
-  @UseInterceptors(FileInterceptor('file', {
-    fileFilter: fileFilter,
-    limits: {
-      fileSize: 3145728
-    },
-    storage: diskStorage({
-      destination: saveImage,
-      filename: nameImg
-    })
-  }))
   public async update(
     @Param('id') id: string, 
     @Body() updateAboutDto: UpdateAboutDto,
-    @UploadedFile() file: Express.Multer.File,
     @Res() res: Response
     ) {
       try{
         const aboutSection = updateAboutDto;
-        this.aboutService.resizeImg(aboutSection.itemName,file);
-        await this.aboutService.update(id, updateAboutDto);
+        await this.aboutService.update(id, aboutSection);
         return res.status(HttpStatus.OK).json({
           message:'About Section has been actualized'
           })
       }
       catch(error){
-        this.aboutService.deleteImgCatch(file, updateAboutDto);
         return res.status(HttpStatus.CONFLICT).json({
           message:`Failed to updated the About Section ${error.message}`
         })

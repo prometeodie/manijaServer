@@ -29,10 +29,6 @@ export class CreateEventDto {
     imgName: string;
     
     @IsString()
-    @IsNotEmpty()
-    category: string;
-
-    @IsString()
     @IsOptional()
     itemName: string;
     
@@ -42,7 +38,7 @@ export class CreateEventDto {
 
     @IsString()
     @IsNotEmpty()
-    @IsEnum(['EVENTS'],{
+    @IsEnum([Section.EVENTS],{
         message:'Valid Section value Requiered'
     })
     section:Section

@@ -35,10 +35,6 @@ export class CreateBlogsManijaDto {
     })
     section:Section
 
-    @IsString()
-    @IsNotEmpty()
-    itemName: string; //Is the title without spaces
-
     @IsBoolean()
     @IsOptional()
     publish:Boolean

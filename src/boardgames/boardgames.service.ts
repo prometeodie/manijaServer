@@ -8,7 +8,7 @@ import { ErrorManager } from 'src/utils/error.manager';
 import * as fs from 'node:fs';
 
 import { imgResizing } from 'src/helpers/image.helper';
-import { UploadImgDto } from '../blogs-manijas/dto/upload-img-manija.dto';
+import { UploadImgDto } from '../blogs-manijas/dto/upload-blogImg-manija.dto';
 
 
 @Injectable()
@@ -136,7 +136,7 @@ export class BoardgamesService {
   }
 }
 
-deleteImage = async (imagePath: string) => {
+async deleteImage(imagePath: string) {
   try{
     const fs = require('fs').promises
     await fs.rm(imagePath, { recursive: true })
@@ -149,13 +149,17 @@ deleteImage = async (imagePath: string) => {
 
 deleteImgCatch(req:UploadImgDto, files: Express.Multer.File[]){
   files.map((file)=>{
-    const imgPath: string = `${this.commonPath}/${req.itemName}/${file.filename}`
+    let imgPath: string;
+    if(file.filename.includes('cardCover')){
+      imgPath = `${this.commonPath}/${req.itemName}/cardCover/${file.filename}`
+    }else{
+      imgPath = `${this.commonPath}/${req.itemName}/${file.filename}`
+    }
     setTimeout(()=>{
       if (fs.existsSync(imgPath)) {
       this.deleteImage(imgPath)
-    }
-    },5000)
-  })
-}
-
+        }
+      },5000)
+    })
+  }
 }

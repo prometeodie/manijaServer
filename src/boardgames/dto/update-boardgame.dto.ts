@@ -74,7 +74,7 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
 
     @IsString()
     @IsOptional()
-    @IsEnum(['BOARDGAMES'],{
+    @IsEnum([Section.BOARDGAMES],{
         message:'Valid Section value Requiered'
     })
     section:Section

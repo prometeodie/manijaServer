@@ -35,18 +35,6 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     @IsOptional()
     url : string;
     
-    @IsString()
-    @IsOptional()
-    category: string;
-
-    @IsString()
-    @IsOptional()
-    itemName: string;
-
-    @IsString()
-    @IsOptional()
-    section: Section;
-    
     @IsBoolean()
     @IsOptional()
     publish: boolean;

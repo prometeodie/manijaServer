@@ -8,6 +8,7 @@ import * as fs from 'node:fs';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { BlogsManija } from './entities/blogs-manija.entity';
+import { UploadImgDto } from './dto/upload-blogImg-manija.dto';
 
 
 @Injectable()
@@ -20,10 +21,9 @@ export class BlogsManijasService {
     private blogsManijaModel: Model<BlogsManija>,
   ) {}
 
-  async create(createBlogsManijaDto: CreateBlogsManijaDto, files:Express.Multer.File[]) {
+  async create(createBlogsManijaDto: CreateBlogsManijaDto) {
     try{
       const newBlog = await new this.blogsManijaModel( createBlogsManijaDto );
-      newBlog.imgName = files.map(file => `${file.filename}`)
       newBlog.creationDate = new Date;
       return newBlog.save()
     }catch(error){
@@ -86,7 +86,7 @@ export class BlogsManijasService {
     }
   }
 
-   deleteImage = async (imagePath: string) => {
+   async deleteImage(imagePath: string) {
         try{
           const fs = require('fs').promises
           await fs.rm(imagePath, { recursive: true })
@@ -97,12 +97,12 @@ export class BlogsManijasService {
       }
     }
     
-    resizeImg(blog:CreateBlogsManijaDto ,files: Express.Multer.File[]){
+    resizeImg(itemName: string[] ,blogName:string){
       try{
-        if(files.length > 0){
-          const path = `${this.commonPath}/${blog.itemName}`
+        if(itemName.length > 0){
+          const path = `${this.commonPath}/${blogName}`
           try{
-            files.map((file,i) => imgResizing(path,file.filename,500))
+            itemName.map((file) => imgResizing(path,file,500))
           }catch(error){
             console.error('Something wrong happened resizing the image', error)
             throw error;    
@@ -113,17 +113,20 @@ export class BlogsManijasService {
         throw error;    
     }
   }
-
-  deleteImgCatch(files: Express.Multer.File[], updateBlogsManijaDto: UpdateBlogsManijaDto | CreateBlogsManijaDto){
+  
+  deleteImgCatch(req:UploadImgDto, files: Express.Multer.File[]){
     files.map((file)=>{
-      const imgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/${file.filename}`
-      const optimizeImgPath: string = `${this.commonPath}/${updateBlogsManijaDto.itemName}/optimize/smallS-${file.filename}`
+      let imgPath: string;
+      if(file.filename.includes('cardCover')){
+        imgPath = `${this.commonPath}/${req.itemName}/cardCover/${file.filename}`
+      }else{
+        imgPath = `${this.commonPath}/${req.itemName}/${file.filename}`
+      }
       setTimeout(()=>{
         if (fs.existsSync(imgPath)) {
         this.deleteImage(imgPath)
-        this.deleteImage(optimizeImgPath)
-      }
-      },5000)
-    })
-  }
+          }
+        },5000)
+      })
+    }
  }

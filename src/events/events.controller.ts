@@ -8,7 +8,8 @@ import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ManijaEvent } from './entities/event.entity';
-
+import { UploadImgDto } from './dto/upload-eventsImg-manija.dto';
+ 
 @Injectable()
 @Controller('events')
 export class EventsController {
@@ -17,6 +18,30 @@ export class EventsController {
   private readonly logger = new Logger(ManijaEvent.name);
 
   @Post('upload')
+  public async create(
+    @Body() createEventDto: CreateEventDto,
+    @Res() res: Response ) {
+      try{
+        const event = createEventDto;
+        const regex = /^#(?:[0-9a-fA-F]{3}){1,2}$/i;
+        if (regex.test(event.eventColor)) {
+          await this.eventsService.create(createEventDto);
+          return res.status(HttpStatus.OK).json({
+            message:'Event has been saved',
+          })
+        } else {
+          return res.status(HttpStatus.BAD_REQUEST).json({
+            message: 'eventColor has not an hexadecimal format '
+          });
+        }
+      } catch(error){
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message:   `Error uploading the Event ${error.message}`
+        });
+      }
+  }
+
+  @Post('uploadImg/:id')
   @UseInterceptors(FileInterceptor('file', {
     fileFilter: fileFilter,
     limits: {
@@ -27,31 +52,34 @@ export class EventsController {
       filename: nameImg
     })
   }))
-  public async create(
-    @Body() createEventDto: CreateEventDto,
+  public async uploadImg(
+    @Res() res: Response,
     @UploadedFile() file: Express.Multer.File,
-    @Res() res: Response ) {
-      try{
-        const event = createEventDto;
-        const regex = /^#(?:[0-9a-fA-F]{3}){1,2}$/i;
-        if (regex.test(event.eventColor)) {
-          event.publish = false;
-          this.eventsService.resizeImg(event.itemName,file);
-          await this.eventsService.create(createEventDto, file);
-          return res.status(HttpStatus.OK).json({
-            message:'Event has been saved',
-          })
-        } else {
-          return res.status(HttpStatus.BAD_REQUEST).json({
-            message: 'eventColor has not an hexadecimal format '
-          });
-        }
-       
-      } catch(error){
-        return res.status(HttpStatus.BAD_REQUEST).json({
-          message:   `Error uploading the Event ${error.message}`
-        });
-      }
+    @Body() uploadImgDto: UploadImgDto,
+    @Param('id') id: string, 
+  ){
+    try{
+      const event = await this.eventsService.findOne(id);
+      const imgName = file.filename;
+      this.eventsService.resizeImg(imgName, uploadImgDto.itemName)
+      event.imgName = imgName
+      const {_id, ...newEvent} = event.toJSON();
+      const updatedBlog = {
+        ...newEvent,
+        itemName: uploadImgDto.itemName
+      };
+      this.eventsService.update(id,updatedBlog)
+      return res.status(HttpStatus.OK).json({
+        message:'img has been saved',
+      })
+    }catch(error){
+      const imgName = file.filename;
+      const itemName =  uploadImgDto.itemName;
+      this.eventsService.deleteImgCatch(imgName,itemName)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request ${error.message}`,
+      });
+    }
   }
 
   @Get()
@@ -84,26 +112,14 @@ export class EventsController {
     }
     
     @Patch('edit/:id')
-    @UseInterceptors(FileInterceptor('file', {
-      fileFilter: fileFilter,
-      limits: {
-        fileSize: 3145728
-      },
-      storage: diskStorage({
-        destination: saveImage,
-        filename: nameImg
-      })
-    }))
     public async update(
       @Param('id') id: string, 
       @Body() updateEventDto: UpdateEventDto,
-      @UploadedFile() file: Express.Multer.File,
       @Res() res: Response
       ) {
         try{
-          await this.eventsService.update(id, updateEventDto);;
           const event = updateEventDto;
-          this.eventsService.resizeImg(event.itemName,file);
+          await this.eventsService.update(id, event);;
           return res.status(HttpStatus.OK).json({
             message:'Event has been actualized'
             })
@@ -153,6 +169,4 @@ export class EventsController {
         }
       }
 }
-
-// TODO:ver como evitar q cargue la imagen si al postear surge cualquier tipo de error en post y en patch
 

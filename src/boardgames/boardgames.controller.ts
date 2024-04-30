@@ -6,12 +6,14 @@ import { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
-import { UploadImgDto } from 'src/blogs-manijas/dto/upload-img-manija.dto';
+import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
+
 
 
 @Controller('boardgames')
 export class BoardgamesController {
   constructor(private readonly boardgamesService: BoardgamesService) {}
+
   @Post('upload')
   public async create(
     @Body() createBoardgameDto: CreateBoardgameDto,
@@ -31,7 +33,6 @@ export class BoardgamesController {
     }
   }
 
- 
   @Post('uploadImg/:id')
   @UseInterceptors(FilesInterceptor('files', 4, {
     fileFilter: fileFilter,
@@ -50,12 +51,12 @@ export class BoardgamesController {
     @Param('id') id: string, 
   ){
     try{
-      // TODO:poner que en trello que para guardar la img card cover a la hora de suvir la img tiene que contener en su nombre la palabra "cardCover"
-      // TODO:hacer que se guarde el nombre de img cardcover en la propiedad cardcover del objeto en la BD
       const boardgame = await this.boardgamesService.findOne(id);
       const imgNames = files.map(file => {return file.filename;})
       this.boardgamesService.resizeImg(imgNames, boardgame.title)
-      imgNames.map(img=>boardgame.imgName.push(img));
+      imgNames.map(img =>{
+        (img.includes('cardCover'))? boardgame.cardCoverImgName = img : boardgame.imgName.push(img);
+      });
       const {_id, ...newBoard} = boardgame.toJSON();
       const updatedBoard = {
         ...newBoard,
@@ -173,4 +174,3 @@ export class BoardgamesController {
 
 }
 
-// TODO:redisenar multer para poder guardar la img de portada y poder solucionar el problema de que si falla a la hora de crear el objeto guarda igual las imagenes

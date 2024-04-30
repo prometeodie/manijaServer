@@ -6,22 +6,23 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ManijaEvent } from './entities/event.entity';
 import { imgResizing } from 'src/helpers/image.helper';
+import * as fs from 'node:fs';
 
 
 @Injectable()
 
 export class EventsService {
 
+  readonly commonPath: string = 'upload/EVENTS';
 
   constructor(
     @InjectModel(ManijaEvent.name)
     private manijaEventModel: Model<ManijaEvent>){}
 
-  async create(createEventDto: CreateEventDto, file:Express.Multer.File) {
+  async create(createEventDto: CreateEventDto) {
     try{
       const newEvent = await new this.manijaEventModel( createEventDto );
       newEvent.creationDate = new Date;
-      newEvent.imgName = file.filename;
       return newEvent.save()
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
@@ -81,7 +82,7 @@ export class EventsService {
     }
   }
 
-  deleteImage = async (imagePath: string) => {
+  async deleteImage(imagePath: string) {
     try{
       const fs = require('fs').promises
       await fs.rm(imagePath, { recursive: true })
@@ -92,23 +93,31 @@ export class EventsService {
   }
 }
 
-  resizeImg(itemName:string ,file: Express.Multer.File){
-    try{
-      if(file){
-        const path = `upload/events/${itemName}`
-       try{
-         imgResizing(path,file.filename,300);
-       }catch(error){
+  async resizeImg(fileName: string, itemName: string){
+      try{
+        if(fileName){
+          const path = `${this.commonPath}/${itemName}`
+          try{
+            await imgResizing(path,fileName,500)
+          }catch(error){
+            console.error('Something wrong happened resizing the image', error)
+            throw error;    
+          }
+        }
+      }catch(error){
         console.error('Something wrong happened resizing the image', error)
-        throw error;
-       }
+        throw error;    
       }
-    }catch(error){
-      console.error('Something wrong happened resizing the image', error)
-      throw error;
-    }
   }
 
+  deleteImgCatch(fileName: string, itemName: string){
+    const imgPath = `${this.commonPath}/${itemName}/${fileName}`
+      setTimeout(()=>{
+        if (fs.existsSync(imgPath)) {
+        this.deleteImage(imgPath)
+          }
+        },5000)
+      }
 
   async eliminarObjetosVencidos(): Promise<void> {
     const currentDate = new Date();

@@ -33,7 +33,7 @@ export const fileFilter = (req, file, callback) => {
     callback(null,true)
 }
 
-export const imgResizing =  (filePath:string,fileName:string, size:number)=>{
+export const  imgResizing =  (filePath:string,fileName:string, size:number)=>{
     let path = `${filePath}/optimize/smallS-${fileName}`;
     let ubication = `${filePath}`
 
@@ -48,7 +48,7 @@ export const imgResizing =  (filePath:string,fileName:string, size:number)=>{
         .toFile(path)            
 }
 
-const pathCreator = (path:string)=>{
+export const pathCreator = (path:string)=>{
     if (!fs.existsSync(path)) {
         fs.mkdirSync(path);
     }
