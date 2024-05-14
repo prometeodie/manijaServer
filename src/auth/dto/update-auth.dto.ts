@@ -27,6 +27,7 @@ export class UpdateAuthDto extends PartialType(CreateUserDto) {
     password: string;
 
     @IsString()
+    @IsOptional()
     @IsEnum([Roles.USER, Roles.ADMIN, Roles.MASTER],{
         message:'Valid Role value Requiered'
     })

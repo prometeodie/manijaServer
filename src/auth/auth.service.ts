@@ -5,12 +5,13 @@ import { Model } from 'mongoose';
 
 import * as bcryptjs from 'bcryptjs';
 
-import { RegisterUserDto, CreateUserDto, UpdateAuthDto, LoginDto } from './dto';
+import { CreateUserDto, UpdateAuthDto, LoginDto } from './dto';
 
 import { User } from './entities/user.entity';
 
 import { JwtPayload } from './interfaces/jwt-payload';
 import { LoginResponse } from './interfaces/login-response';
+import { ErrorManager } from 'src/utils/error.manager';
 
 @Injectable()
 export class AuthService {
@@ -48,67 +49,103 @@ export class AuthService {
 
   }
 
-  // async register( registerDto: RegisterUserDto ): Promise<LoginResponse> {
-
-  //   const user = await this.create( registerDto );
-
-  //   return {
-  //     user: user,
-  //     token: this.getJwtToken({ id: user._id })
-  //   }
-  // }
-
 
   async login( loginDto: LoginDto ):Promise<LoginResponse> {
 
-    const { email, password } = loginDto;
-
-    const user = await this.userModel.findOne({ email });
-    if ( !user ) {
-      throw new UnauthorizedException('Not valid credentials');
-    }
-    
-    if ( !bcryptjs.compareSync( password, user.password ) ) {
-      throw new UnauthorizedException('Not valid credentials');
-    }
-
-    const { password:_, ...rest  } = user.toJSON();
-
+    try{
+      const { email, password } = loginDto;
+  
+      const user = await this.userModel.findOne({ email });
+      if ( !user ) {
+        throw new UnauthorizedException('Not valid credentials');
+      }
       
-    return {
-      user: rest,
-      token: this.getJwtToken({ id: user.id }),
+      if ( !bcryptjs.compareSync( password, user.password ) ) {
+        throw new UnauthorizedException('Not valid credentials');
+      }
+  
+      const { password:_, ...rest  } = user.toJSON();
+  
+      const userLoggedIn = {
+        user: rest,
+        token: this.getJwtToken({ id: user.id }),
+      }
+
+      return userLoggedIn;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
     }
   
   }
 
 
-  findAll(): Promise<User[]> {
-    return this.userModel.find();
+  async findAll(): Promise<User[]> {
+    try{
+      const response = await this.userModel.find();
+      return response;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
   }
 
+  
   async findUserById( id: string ) {
-    const user = await this.userModel.findById( id );
-    const { password, ...rest } = user.toJSON();
-    return rest;
+    try{
+      const user = await this.userModel.findById( id );
+      if ( !user){
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'User does not exist'
+        })
+      }
+      const { password, ...rest } = user.toJSON();
+      return rest;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
   }
 
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+ async update(id: string, updateAuthDto: UpdateAuthDto) {
+    try{
+
+      if(updateAuthDto.password){
+        const encryptedPass = bcryptjs.hashSync( updateAuthDto.password, 10 );
+        updateAuthDto.password = encryptedPass;
+      }
+
+      const user = await this.userModel.findByIdAndUpdate(id, updateAuthDto, { new: true } );
+      if (!user) {
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'User does not exist'
+        })
+      }
+      return user;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
+  async remove(id: string) {
+    try{
+      const user = await this.userModel.findByIdAndDelete(id)
+      if ( !user ){
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'User does not exist'
+        })}
+      return user;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    getJwtToken( payload: JwtPayload ) {
+      const token = this.jwtService.sign(payload);
+      return token;
+    }
   }
 
-  getJwtToken( payload: JwtPayload ) {
-    const token = this.jwtService.sign(payload);
-    return token;
-  }
 
-}
+
