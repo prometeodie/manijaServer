@@ -15,6 +15,7 @@ import { AuthModule } from 'src/auth/auth.module';
     schema: AboutSchema
   }]),
   ScheduleModule.forRoot(),
+  AuthModule
   ]
 })
 export class AboutModule {}

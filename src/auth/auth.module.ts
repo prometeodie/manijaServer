@@ -23,9 +23,10 @@ import { User, UserSchema } from './entities/user.entity';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SEED,
-      signOptions: { expiresIn: '6h' },
+      signOptions: { expiresIn: '1h' },
     }),
 
-  ]
+  ],
+  exports: [AuthService]
 })
 export class AuthModule {}

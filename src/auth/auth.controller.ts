@@ -2,23 +2,24 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, 
 import { AuthService } from './auth.service';
 
 import { CreateUserDto, LoginDto, UpdateAuthDto } from './dto';
-import { AuthGuard } from './guards/auth.guard';
+
 import { LoginResponse } from './interfaces/login-response';
 import { User } from './entities/user.entity';
 import { Response } from 'express';
-import { PublicAccess } from './decorators/public.decorator';
 
-// TODO: poner los guards en el "export class AuthController" y crear el public para q deje pasar y el de los roles segun el video de youtube
-// TODO:aplicar bien todos los guards  entender como fucnionan
-// TODO:ver como conectarr y poner guards al resto de secciones
-
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { RolesAccess } from 'src/decorators/roles.decorator';
+import { PublicAccess } from 'src/decorators/public.decorator';
+import { Roles } from 'src/utils/roles.enum';
 
 @Controller('auth')
-@UseGuards( AuthGuard )
+@UseGuards( AuthGuard, RolesGuard )
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   
-  @Post('/register')
+  @Post('register')
+  @RolesAccess(Roles.MASTER)
   async create(
     @Body() createUserDto: CreateUserDto,
     @Res() res:Response
@@ -36,7 +37,7 @@ export class AuthController {
   }
 
   @PublicAccess()
-  @Post('/login')
+  @Post('login')
   async login( 
     @Body() loginDto: LoginDto,
     @Res() res:Response  ) { 
@@ -47,11 +48,11 @@ export class AuthController {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           message: `There was an error processing the request ${error.message}`,
         });
+      }
     }
-  }
-
-
-  @Get()
+    
+  @RolesAccess(Roles.MASTER)
+  @Get('all-users')
   async findAll( 
     @Request() req: Request,
     @Res() res:Response
@@ -66,7 +67,7 @@ export class AuthController {
       }
   }
 
-  // LoginResponse
+  @RolesAccess(Roles.ADMIN)
   @Get('check-token')
   checkToken( 
     @Request() req: Request,
@@ -74,9 +75,10 @@ export class AuthController {
   ): LoginResponse | Response {
       try{
         const user = req['user'] as User;
+        console.log(user)
         const userAndToken = {
           user,
-          token: this.authService.getJwtToken({ id: user._id })
+          token: this.authService.getJwtToken({ id: user.id, roles: user.roles })
         }
         res.status(HttpStatus.OK).json(userAndToken);
       }catch(error){
@@ -86,7 +88,8 @@ export class AuthController {
       }
   }
 
-  @Get('/user/:id')
+  @RolesAccess(Roles.MASTER)
+  @Get('user/:id')
   async findOne(
     @Param('id') id: string,
     @Res() res:Response
@@ -101,7 +104,8 @@ export class AuthController {
     }
   }
 
-  @Patch('/update-user/:id')
+  @RolesAccess(Roles.MASTER)
+  @Patch('update-user/:id')
   async update(
     @Param('id') id: string, 
     @Body() updateAuthDto: UpdateAuthDto,
@@ -117,7 +121,8 @@ export class AuthController {
     }
   }
 
-  @Delete('/delete-user/:id')
+  @RolesAccess(Roles.MASTER)
+  @Delete('delete-user/:id')
   async remove(
     @Param('id') id: string,
     @Res() res:Response

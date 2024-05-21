@@ -8,7 +8,9 @@ import { ErrorManager } from 'src/utils/error.manager';
 import * as fs from 'node:fs';
 
 import { imgResizing } from 'src/helpers/image.helper';
-import { UploadImgDto } from '../blogs-manijas/dto/upload-blogImg-manija.dto';
+import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
+import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
+
 
 
 @Injectable()
@@ -89,6 +91,24 @@ export class BoardgamesService {
         })
       }
       return boardgame;
+    }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
+  async updateManijometro(id:string, manijometroPoolDto:ManijometroPoolDto){
+    try{
+      const boardgame:Boardgame = board
+      // TODO:ndar todo el board agregando eso en kas propiedades -aparte verificqar siui ya voto y solo cambiar los vbalores votados
+        const manijometroPool = await this.boardgameModel.findByIdAndUpdate( id, manijometroPoolDto, {new:true} );
+        console.log(manijometroPool)
+        if (!manijometroPool) {
+          throw new ErrorManager({
+            type:'NOT_FOUND',
+            message:'boardgame does not exist'
+          })
+        }
+        return manijometroPool;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

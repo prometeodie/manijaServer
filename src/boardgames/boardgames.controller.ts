@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res, Query, UploadedFiles, UseInterceptors, UseGuards } from '@nestjs/common';
 import { BoardgamesService } from './boardgames.service';
 import { CreateBoardgameDto } from './dto/create-boardgame.dto';
 import { UpdateBoardgameDto } from './dto/update-boardgame.dto';
@@ -7,13 +7,22 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
 import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { PublicAccess } from 'src/decorators/public.decorator';
+import { RolesAccess } from 'src/decorators/roles.decorator';
+import { Roles } from 'src/utils/roles.enum';
+import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
+
 
 
 
 @Controller('boardgames')
+@UseGuards( AuthGuard, RolesGuard)
 export class BoardgamesController {
   constructor(private readonly boardgamesService: BoardgamesService) {}
 
+  @RolesAccess(Roles.ADMIN)
   @Post('upload')
   public async create(
     @Body() createBoardgameDto: CreateBoardgameDto,
@@ -28,11 +37,12 @@ export class BoardgamesController {
       })
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `Error uploading the Blog ${error.message}`
+        message: `Error uploading the Boardgame ${error.message}`
       });
     }
   }
 
+  @RolesAccess(Roles.ADMIN,Roles.MASTER)
   @Post('uploadImg/:id')
   @UseInterceptors(FilesInterceptor('files', 4, {
     fileFilter: fileFilter,
@@ -74,6 +84,7 @@ export class BoardgamesController {
     }
   }
 
+  @RolesAccess(Roles.ADMIN,Roles.MASTER)
   @Get('admin')
   public async findAll(
     @Res() res: Response
@@ -89,6 +100,7 @@ export class BoardgamesController {
     }
   }
 
+  @PublicAccess()
   @Get()
   public async findAllAvailableToPublish(
     @Res() res: Response
@@ -104,11 +116,13 @@ export class BoardgamesController {
     }
   }
 
+  @PublicAccess()
   @Get('findboardgame')
   public async getBoardgamesByTitle(@Query('title') title: string) {
     return this.boardgamesService.findBoardgamesByTitle(title);
   }
 
+  @PublicAccess()
   @Get(':id')
   public async findOne(
     @Param('id') id: string,
@@ -122,11 +136,12 @@ export class BoardgamesController {
       return res.status(HttpStatus.OK).json(boardgameById);
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `Error finding the Blog ${error.message}`
+        message: `Error finding the Boardgame ${error.message}`
       });
     }
   }
 
+  @RolesAccess(Roles.ADMIN,Roles.MASTER)
   @Patch('edit/:id')
   public async update(
     @Param('id') id: string, 
@@ -140,11 +155,31 @@ export class BoardgamesController {
         })
     }catch(error){
       return res.status(HttpStatus.CONFLICT).json({
-        message:`Failed to updated the blog ${error.message}`
+        message:`Failed to updated the Boardgame ${error.message}`
       })
     }
   }
 
+  @RolesAccess(Roles.ADMIN,Roles.MASTER)
+  @Patch('manijometro/:id')
+  public async updateManijometro(
+    @Param('id') id: string, 
+    @Body() manijometroPoolDto: ManijometroPoolDto,
+    @Res() res:Response
+  ) {
+    try{
+      await this.boardgamesService.updateManijometro(id, manijometroPoolDto);
+      return res.status(HttpStatus.OK).json({
+        message:'Manijometro has been actualized'
+        })
+    }catch(error){
+      return res.status(HttpStatus.CONFLICT).json({
+        message:`Failed to updated the Manijometro ${error.message}`
+      })
+    }
+  }
+
+  @RolesAccess(Roles.ADMIN,Roles.MASTER)
   @Delete('delete/:id')
   public async remove(
     @Param('id') id: string,
@@ -157,11 +192,12 @@ export class BoardgamesController {
       })
     }catch(error){
       return res.status(HttpStatus.CONFLICT).json({
-        message:`Failed to delete Blog`
+        message:`Failed to delete Boardgame`
       })
     }
   }
 
+  @RolesAccess(Roles.ADMIN,Roles.MASTER)
   @Delete('delete/img/:path(*)')
   public async removeImg(@Param('path') path: string) {
     try {

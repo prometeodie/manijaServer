@@ -65,12 +65,12 @@ export class AuthService {
       }
   
       const { password:_, ...rest  } = user.toJSON();
+      const token = this.getJwtToken({ id: user.id, roles: user.roles })
   
       const userLoggedIn = {
         user: rest,
-        token: this.getJwtToken({ id: user.id }),
+        token: token
       }
-
       return userLoggedIn;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
@@ -142,7 +142,7 @@ export class AuthService {
   }
 
     getJwtToken( payload: JwtPayload ) {
-      const token = this.jwtService.sign(payload);
+      const token =  this.jwtService.sign(payload);
       return token;
     }
   }

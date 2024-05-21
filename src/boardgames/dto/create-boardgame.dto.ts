@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsBoolean, IsNotEmpty } from 'class-validator';
 
 import { Section } from "src/helpers/section.enum";
 import { CategoryGame } from "../utils/game.enum";
@@ -13,7 +13,7 @@ import { Reel } from '../utils/reel.class';
 
 export class CreateBoardgameDto {
     
-    @IsString()
+    @IsNotEmpty()
     @IsOptional()
     title: string;
 
@@ -43,11 +43,6 @@ export class CreateBoardgameDto {
     @Transform(value => new StringToNumberTransformer().to(value))
     duration: number;
 
-    @IsNumber()
-    @IsOptional()
-    @Transform(value => new StringToNumberTransformer().to(value))
-    manijometro: number;
-
     @IsString()
     @IsOptional()
     gameReview: string;
@@ -70,9 +65,9 @@ export class CreateBoardgameDto {
     @IsOptional()
     howToPlayUrl: string;
 
-    @IsObject()
+    @IsArray()
     @IsOptional()
-    reel: Reel;
+    reel: Reel[];
 
     @IsString()
     @IsOptional()

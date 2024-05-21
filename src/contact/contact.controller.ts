@@ -1,14 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { PublicAccess } from 'src/decorators/public.decorator';
+import { RolesAccess } from 'src/decorators/roles.decorator';
+import { Roles } from 'src/utils/roles.enum';
 
 @Controller('message')
+@UseGuards( AuthGuard, RolesGuard)
 export class ContactController {
   constructor(private readonly contactService: ContactService) {}
 
   @Post()
+  @PublicAccess()
   public async create(
     @Body() createContactDto: CreateContactDto,
     @Res() res: Response) {
@@ -24,6 +31,7 @@ export class ContactController {
   }
 
   @Get('all')
+  @RolesAccess(Roles.ADMIN)
   public async findAll(
     @Res() res: Response
   ) {
@@ -38,6 +46,7 @@ export class ContactController {
   }
 
   @Get(':id')
+  @RolesAccess(Roles.ADMIN)
   public async findOne(
     @Param('id') id: string,
     @Res()  res: Response
@@ -53,6 +62,7 @@ export class ContactController {
   }
 
   @Patch('edit/:id')
+  @RolesAccess(Roles.ADMIN)
   public async update(
     @Param('id') id: string, 
     @Body() updateContactDto: UpdateContactDto,
@@ -71,6 +81,7 @@ export class ContactController {
   }
 
   @Delete('delete/:id')
+  @RolesAccess(Roles.ADMIN)
   public async remove(
     @Param('id') id: string,
     @Res() res: Response

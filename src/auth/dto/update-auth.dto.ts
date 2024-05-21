@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
 import { IsEmail, IsEnum, IsOptional, IsString, IsStrongPassword, Matches } from 'class-validator';
-import { Roles } from '../utils/roles.enum';
+import { Roles } from 'src/utils/roles.enum';
+
 
 export class UpdateAuthDto extends PartialType(CreateUserDto) {
 

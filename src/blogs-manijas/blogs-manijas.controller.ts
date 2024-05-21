@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UploadedFiles } from '@nestjs/common';
+
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UploadedFiles, UseGuards } from '@nestjs/common';
 import { BlogsManijasService } from './blogs-manijas.service';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
@@ -7,13 +8,20 @@ import { diskStorage } from 'multer';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { Response } from 'express';
 import { UploadImgDto } from './dto/upload-blogImg-manija.dto';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesAccess } from 'src/decorators/roles.decorator';
+import { Roles } from 'src/utils/roles.enum';
+import { PublicAccess } from 'src/decorators/public.decorator';
 
 
 @Controller('blogsManijas')
+@UseGuards( AuthGuard, RolesGuard)
 export class BlogsManijasController {
   constructor(private readonly blogsManijasService: BlogsManijasService) {}
   
   @Post('upload')
+  @RolesAccess(Roles.ADMIN)
   public async create(
     @Body() createBlogsManijaDto: CreateBlogsManijaDto,
     @Res() res: Response ) {
@@ -41,6 +49,7 @@ export class BlogsManijasController {
       filename: nameImg
     })
   }))
+  @RolesAccess(Roles.ADMIN)
   public async uploadImg(
     @Res() res: Response,
     @UploadedFiles() files: Express.Multer.File[],
@@ -66,7 +75,8 @@ export class BlogsManijasController {
     }
   }
 
-  @Get()
+  @Get('admin')
+  @RolesAccess(Roles.ADMIN)
   public async findAll(
     @Res() res: Response
     ) {
@@ -82,6 +92,7 @@ export class BlogsManijasController {
     }
     
     @Get(':id')
+    @PublicAccess()
     public async findOne(
       @Param('id') id: string,
       @Res() res: Response
@@ -96,7 +107,21 @@ export class BlogsManijasController {
     }
   }
 
+  @Get()
+  @PublicAccess()
+  public async findAllAvailableToPublish(@Res() res: Response){
+    try{
+      const blogs = await this.blogsManijasService.findPublishedAboutSections();
+      return res.status(HttpStatus.OK).json(blogs);
+    }catch(error){
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: `Error finding Blogs ${error.message}`
+      }); 
+    }
+  }
+
   @Patch('edit/:id')
+  @RolesAccess(Roles.ADMIN)
   public async update(
     @Param('id') id: string, 
     @Body() updateBlogsManijaDto: UpdateBlogsManijaDto, 
@@ -115,6 +140,7 @@ export class BlogsManijasController {
   }
 
   @Delete('delete/:id')
+  @RolesAccess(Roles.ADMIN)
   public async remove(
     @Param('id') id: string,
     @Res() res: Response) {
@@ -131,6 +157,7 @@ export class BlogsManijasController {
   }
 
   @Delete('delete/img/:path(*)')
+  @RolesAccess(Roles.ADMIN)
   public async removeImg(@Param('path') path: string) {
     try {
       await this.blogsManijasService.deleteImage(path);

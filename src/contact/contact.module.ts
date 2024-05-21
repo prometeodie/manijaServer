@@ -4,6 +4,7 @@ import { ContactController } from './contact.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Contact, ContactSchema } from './entities/contact.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [ContactController],
@@ -12,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     name:Contact.name,
     schema: ContactSchema
   }]),
-  ScheduleModule.forRoot()]
+  ScheduleModule.forRoot(),
+  AuthModule ]
 })
 export class ContactModule {}

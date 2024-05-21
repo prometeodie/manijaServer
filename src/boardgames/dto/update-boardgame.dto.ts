@@ -40,11 +40,6 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
     @Transform(value => new StringToNumberTransformer().to(value))
     duration: number;
 
-    @IsNumber()
-    @IsOptional()
-    @Transform(value => new StringToNumberTransformer().to(value))
-    manijometro: number;
-
     @IsString()
     @IsOptional()
     gameReview: string;
@@ -67,10 +62,9 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
     @IsOptional()
     howToPlayUrl: string;
 
-    @IsObject()
+    @IsArray()
     @IsOptional()
-    reel: Reel;
-
+    reel: Reel[];
 
     @IsString()
     @IsOptional()

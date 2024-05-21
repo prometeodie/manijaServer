@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, UploadedFile, HttpStatus} from '@nestjs/common';
+
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, UploadedFile, HttpStatus, UseGuards} from '@nestjs/common';
 import { Response } from 'express';
 import { AboutService } from './about.service';
 import { CreateAboutDto } from './dto/create-about.dto';
@@ -7,14 +8,20 @@ import { fileFilter, nameImg } from 'src/helpers/image.helper';
 import { diskStorage } from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { aboutSaveImage } from './helper/saveImg.helper';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { RolesAccess } from 'src/decorators/roles.decorator';
+import { Roles } from 'src/utils/roles.enum';
+import { PublicAccess } from 'src/decorators/public.decorator';
 
 
 @Controller('about')
+@UseGuards(AuthGuard, RolesGuard)
 export class AboutController {
-
   constructor(private readonly aboutService: AboutService) {}
 
   @Post('upload')
+  @RolesAccess(Roles.ADMIN)
   public async create(
     @Body() createAboutDto: CreateAboutDto,
     @Res() res: Response ) {
@@ -42,6 +49,7 @@ export class AboutController {
       filename: nameImg
     })
   }))
+  @RolesAccess(Roles.ADMIN)
   public async uploadImg(
     @Res() res: Response,
     @UploadedFile() file: Express.Multer.File,
@@ -67,7 +75,8 @@ export class AboutController {
   }
 
 
-  @Get()
+  @Get('admin')
+  @RolesAccess(Roles.ADMIN)
   public async findAll( @Res() res: Response
   ) {
     try{
@@ -79,7 +88,9 @@ export class AboutController {
     });
   }
 }
+
   @Get(':id')
+  @PublicAccess()
   public async findOne(
     @Param('id') id: string,
     @Res() res: Response
@@ -94,7 +105,21 @@ export class AboutController {
     }
   }
 
+  @Get()
+  @PublicAccess()
+  public async findAllAvailableToPublish(@Res() res: Response){
+    try{
+      const aboutSection = await this.aboutService.findPublishedAboutSections();
+      return res.status(HttpStatus.OK).json(aboutSection);
+    }catch(error){
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: `Error finding the about section ${error.message}`
+      }); 
+    }
+  }
+
   @Patch('edit/:id')
+  @RolesAccess(Roles.ADMIN)
   public async update(
     @Param('id') id: string, 
     @Body() updateAboutDto: UpdateAboutDto,
@@ -115,6 +140,7 @@ export class AboutController {
     }
 
   @Delete('delete/:id')
+  @RolesAccess(Roles.ADMIN)
   public async remove(
     @Param('id') id: string,
     @Res() res: Response
@@ -131,6 +157,7 @@ export class AboutController {
   }}
 
   @Delete('delete/img/:path(*)')
+  @RolesAccess(Roles.ADMIN)
       public async removeImg(@Param('path') path: string) {
         try {
           await this.aboutService.deleteImage(path);

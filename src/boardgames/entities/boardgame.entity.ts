@@ -4,6 +4,8 @@ import { CategoryGame } from "../utils/game.enum";
 import { Section } from "src/helpers/section.enum";
 import { Replayability } from "../utils/Replayability.enum";
 import { Dificulty } from "../utils/dificulty.enum";
+import { ManijometroPoolEntity } from "../utils/manijometro-interfaces";
+
 
 @Schema()
 export class Boardgame {
@@ -25,8 +27,11 @@ export class Boardgame {
 
     @Prop({required: true})
     duration: number;
-
+    
     @Prop({required: true})
+    manijometroPool: ManijometroPoolEntity[];
+
+    @Prop({required: true,default: 0})
     manijometro: number;
 
     @Prop({required: false})
@@ -45,7 +50,7 @@ export class Boardgame {
     howToPlayUrl: string;
 
     @Prop({required: true})
-    reel: Reel;
+    reel: Reel[];
 
     @Prop({required:true})
     section:Section

@@ -53,6 +53,14 @@ export class EventsService {
     }
   }
 
+  async findPublishedAboutSections(): Promise<ManijaEvent[]>{
+    try{
+      return await this.manijaEventModel.find({ publish: true }).exec();
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
   async update(id: string, updateEventDto: UpdateEventDto) {
     try{
       const event = await this.manijaEventModel.findByIdAndUpdate(id, updateEventDto, { new: true } );

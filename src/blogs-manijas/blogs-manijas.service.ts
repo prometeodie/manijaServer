@@ -55,6 +55,14 @@ export class BlogsManijasService {
     }
   }
 
+  async findPublishedAboutSections(): Promise<BlogsManija[]>{
+    try{
+      return await this.blogsManijaModel.find({ publish: true }).exec();
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
   async update(id: string, updateBlog: UpdateBlogsManijaDto){
     try{
 

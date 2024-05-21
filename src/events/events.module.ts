@@ -4,6 +4,7 @@ import { EventsController } from './events.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventSchema, ManijaEvent } from './entities/event.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [EventsController],
@@ -12,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     name:ManijaEvent.name,
     schema: EventSchema
   }]),
-ScheduleModule.forRoot()]
+ScheduleModule.forRoot(),
+AuthModule]
 })
 export class EventsModule {}

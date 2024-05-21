@@ -1,20 +1,25 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from '../interfaces/jwt-payload';
-import { AuthService } from '../auth.service';
+
 import { Reflector } from '@nestjs/core';
-import { PUBLIC_KEY } from '../utils/key-decorator';
+
 import * as jwt from 'jsonwebtoken';
 
-@Injectable()
-export class AuthGuard implements CanActivate {
 
+import { AuthService } from 'src/auth/auth.service';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload';
+
+import { PUBLIC_KEY, ROLES_KEY } from 'src/utils/key-decorator';
+import { Roles } from 'src/utils/roles.enum';
+
+@Injectable()
+export class RolesGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private authService:AuthService,
     private readonly reflector: Reflector
   ) {}
-
 
   async canActivate( context: ExecutionContext ): Promise<boolean>{
 
@@ -24,40 +29,50 @@ export class AuthGuard implements CanActivate {
         PUBLIC_KEY,
         context.getHandler()
       )
-  
+      
       if(isPublic){
+        console.log('isPublic')
         return true;
       }
+      
   
       const request = context.switchToHttp().getRequest<Request>();
       const token = this.extractTokenFromHeader(request);
       const decoded = jwt.verify(token, process.env.JWT_SEED);
-      const isTokenExpired = this.isTokenExpired(decoded)
+      request['user'] = decoded;
+
       
-  
       if (!token || Array.isArray(token)) {
         throw new UnauthorizedException('Invalid Token');
       }
       
-      if(isTokenExpired){
-        throw new UnauthorizedException('Token Expired');
-      }
-
       const payload = await this.jwtService.verifyAsync<JwtPayload>(
         token, { secret: process.env.JWT_SEED }
       );
-        
-      const user = await this.authService.findUserById( payload.id );
-      if ( !user ) throw new UnauthorizedException('User does not exists');
-      if ( !user.isActive ) throw new UnauthorizedException('User is not active');
+
+      const roles = this.reflector.get<Roles[]>(
+                ROLES_KEY,
+                context.getHandler()
+              )
       
-      request['user'] = user;
+      if(roles === undefined){
+        throw new UnauthorizedException('Invalid Token');
+      }
       
+      if(payload.roles.some(role => role === 'MASTER')){
+        return true;
+      }
+
+      const roleAuth = roles.some(role => role === payload.roles[0])
+      
+      if(!roleAuth){
+        throw new UnauthorizedException();
+      }
+
+      return true;
     } catch (error) {
       throw new UnauthorizedException();
     }
-   
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
@@ -65,21 +80,6 @@ export class AuthGuard implements CanActivate {
     return type === 'Bearer' ? token : undefined;
   }
 
-  private isTokenExpired(decoded: string | jwt.JwtPayload){
-    if (typeof decoded === 'string') {
-      throw new UnauthorizedException('Invalid token');
-    }
-  
-    if (!decoded) {
-      throw new UnauthorizedException('Token is missing or invalid');
-    }
-  
-    if (decoded.exp) {
-      const expirationDate = new Date(decoded.exp * 1000);
-      const currentDate = new Date();
-      return expirationDate < currentDate;
-    }
-  
-    return true;
-  }
 }
+
+

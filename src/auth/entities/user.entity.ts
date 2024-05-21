@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsStrongPassword, Matches } from 'class-validator';
-import { Roles } from '../utils/roles.enum';
+import { Roles } from 'src/utils/roles.enum';
+
 
 @Schema()
 export class User {
 
-    _id?: string;
+    id?: string;
 
     @Prop({ unique: true, required: true })
     email: string;

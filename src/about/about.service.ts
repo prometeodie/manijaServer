@@ -54,6 +54,14 @@ export class AboutService {
     }
   }
 
+  async findPublishedAboutSections(): Promise<AboutSection[]>{
+    try{
+      return await this.aboutSectionModel.find({ publish: true }).exec();
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
   async update(id: string, updateAboutDto: UpdateAboutDto) {
     try{
       const aboutSection = await this.aboutSectionModel.findByIdAndUpdate(id, updateAboutDto, { new: true } );
