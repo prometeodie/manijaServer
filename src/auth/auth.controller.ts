@@ -75,7 +75,6 @@ export class AuthController {
   ): LoginResponse | Response {
       try{
         const user = req['user'] as User;
-        console.log(user)
         const userAndToken = {
           user,
           token: this.authService.getJwtToken({ id: user.id, roles: user.roles })

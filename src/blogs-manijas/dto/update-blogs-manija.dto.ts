@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateBlogsManijaDto } from './create-blogs-manija.dto';
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { Section } from 'src/helpers/section.enum';
+import { BlogsCategories } from '../utils/blogs-categories.enum';
 
 export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
 
@@ -24,8 +25,8 @@ export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
     
     @IsArray()
     @IsOptional()
-    category:string[]
-    // TODO:agregar un enum con categorias cuando sepa cules son
+    @IsEnum(BlogsCategories,{ each:true, message:'Valid category value Requiered'})
+    category:BlogsCategories[]
     
     @IsArray()
     @IsOptional()

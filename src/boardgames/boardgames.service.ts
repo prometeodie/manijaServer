@@ -10,6 +10,7 @@ import * as fs from 'node:fs';
 import { imgResizing } from 'src/helpers/image.helper';
 import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
+import { ManijometroPoolEntity } from './utils/manijometro-interfaces';
 
 
 
@@ -64,6 +65,16 @@ export class BoardgamesService {
     }
   }
 
+  async getVotingValues(){
+    try{
+      const boardgames = await this.boardgameModel.find();
+
+      return boardgames.map(({ id,title,manijometroPool,manijometro,cardCoverImgName }) =>{ return { id, title, manijometroPool, manijometro, cardCoverImgName} })
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
   async findOne(id: string) {
     try{
       const boardgame = await this.boardgameModel.findById(id)
@@ -96,12 +107,23 @@ export class BoardgamesService {
     }
   }
 
-  async updateManijometro(id:string, manijometroPoolDto:ManijometroPoolDto){
+  async updateManijometro(id:string, manijometroPoolDto:ManijometroPoolDto ){
     try{
-      const boardgame:Boardgame = board
-      // TODO:ndar todo el board agregando eso en kas propiedades -aparte verificqar siui ya voto y solo cambiar los vbalores votados
-        const manijometroPool = await this.boardgameModel.findByIdAndUpdate( id, manijometroPoolDto, {new:true} );
-        console.log(manijometroPool)
+      const boardgame = await this.boardgameModel.findById(id)
+      const { userId, manijometroValuesPool, totalManijometroUserValue } = manijometroPoolDto; 
+
+      const existingVote = boardgame.manijometroPool.find(userVote => userVote.userId === userId);
+
+      if (existingVote) {
+        existingVote.manijometroValuesPool = manijometroValuesPool;
+        existingVote.totalManijometroUserValue = totalManijometroUserValue;
+      } else {
+        boardgame.manijometroPool.push(manijometroPoolDto);
+      }
+      
+      boardgame.manijometro = this.manijometroTotalValue(boardgame.manijometroPool);
+
+        const manijometroPool = await this.boardgameModel.findByIdAndUpdate( id, boardgame,{ new: true });
         if (!manijometroPool) {
           throw new ErrorManager({
             type:'NOT_FOUND',
@@ -182,4 +204,19 @@ deleteImgCatch(req:UploadImgDto, files: Express.Multer.File[]){
       },5000)
     })
   }
+
+  manijometroTotalValue(manijometroPools: ManijometroPoolEntity[]): number {
+
+      if (manijometroPools.length === 0) {
+        return 0; 
+      }
+    
+      const totalSum = manijometroPools.reduce((sum, pool) => sum + pool.totalManijometroUserValue, 0);
+      const average = totalSum / manijometroPools.length;
+    
+      return average;
+    }
+
 }
+  
+

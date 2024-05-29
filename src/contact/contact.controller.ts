@@ -45,6 +45,21 @@ export class ContactController {
     }
   }
 
+  @Get('unread-messages')
+  @RolesAccess(Roles.ADMIN)
+  public async unreadMessages(
+    @Res() res: Response
+  ) {
+    try{
+      const messages = await this.contactService.unreadMessagesFilter();
+      return res.status(HttpStatus.OK).json({ unreadMessages:messages.length });
+    }catch(error){
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: `Error finding the Messages ${error.message}`
+      });
+    }
+  }
+
   @Get(':id')
   @RolesAccess(Roles.ADMIN)
   public async findOne(

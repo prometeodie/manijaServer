@@ -31,7 +31,6 @@ export class RolesGuard implements CanActivate {
       )
       
       if(isPublic){
-        console.log('isPublic')
         return true;
       }
       

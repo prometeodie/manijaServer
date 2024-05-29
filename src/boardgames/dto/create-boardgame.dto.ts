@@ -1,7 +1,7 @@
 import { IsArray, IsEnum, IsNumber, IsOptional, IsString, IsBoolean, IsNotEmpty } from 'class-validator';
 
 import { Section } from "src/helpers/section.enum";
-import { CategoryGame } from "../utils/game.enum";
+import { CategoryGame } from "../utils/boardgames-categories.enum";
 import { Dificulty } from "../utils/dificulty.enum";
 import { Replayability } from "../utils/Replayability.enum";
 
@@ -14,14 +14,12 @@ import { Reel } from '../utils/reel.class';
 export class CreateBoardgameDto {
     
     @IsNotEmpty()
-    @IsOptional()
+    @IsString()
     title: string;
 
     @IsString()
     @IsOptional()
-    @IsEnum(['EUROGAME','AMERITRASHGAME','PARTYGAME','FILLER'],{ 
-        message:'Valid category Requiered'
-    })
+    @IsEnum(CategoryGame, { each: true, message:'valid category value is requiered'})
     categoryGame: CategoryGame;
 
     @IsArray()
@@ -49,16 +47,12 @@ export class CreateBoardgameDto {
 
     @IsString()
     @IsOptional()
-    @IsEnum([Dificulty.LOW, Dificulty.MEDIUM, Dificulty.HIGH],{
-        message:'Valid dificulty value Requiered'
-    })
+    @IsEnum(Dificulty,{ each:true, message:'Valid dificulty value Requiered'})
     dificulty: Dificulty;
 
     @IsString()
     @IsOptional()
-    @IsEnum([Replayability.LOW, Replayability.MEDIUM, Replayability.HIGH],{
-        message:'Valid replayability value Requiered'
-    })
+    @IsEnum(Replayability,{ each:true, message:'Valid replayability value Requiered' })
     replayability: Replayability;
 
     @IsString()

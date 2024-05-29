@@ -1,6 +1,6 @@
 import { Prop,Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Reel } from "../utils/reel.class";
-import { CategoryGame } from "../utils/game.enum";
+import { CategoryGame } from "../utils/boardgames-categories.enum";
 import { Section } from "src/helpers/section.enum";
 import { Replayability } from "../utils/Replayability.enum";
 import { Dificulty } from "../utils/dificulty.enum";

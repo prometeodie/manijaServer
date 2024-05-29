@@ -2,6 +2,7 @@
 export interface ManijometroPoolEntity {
     userId: string;
     manijometroValuesPool: ManijometroValues;
+    totalManijometroUserValue: number;
 }
 
 

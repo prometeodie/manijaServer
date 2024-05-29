@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Section } from "src/helpers/section.enum";
+import { BlogsCategories } from "../utils/blogs-categories.enum";
 
 @Schema()
 export class BlogsManija {
@@ -17,7 +18,7 @@ export class BlogsManija {
     blogContent:string;
 
     @Prop({required: true})
-    category:string[]
+    category:BlogsCategories[]
 
     @Prop({required:true})
     section:Section

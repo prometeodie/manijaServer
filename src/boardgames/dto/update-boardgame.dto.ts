@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateBoardgameDto } from './create-boardgame.dto';
 import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
-import { CategoryGame } from '../utils/game.enum';
+import { CategoryGame } from '../utils/boardgames-categories.enum';
 import { Dificulty } from '../utils/dificulty.enum';
 import { Replayability } from '../utils/Replayability.enum';
 import { Section } from 'src/helpers/section.enum';
@@ -16,9 +16,7 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
 
     @IsString()
     @IsOptional()
-    @IsEnum(['EUROGAME','AMERITRASHGAME','PARTYGAME','FILLER'],{ 
-        message:'Valid category Requiered'
-    })
+    @IsEnum(CategoryGame, { each: true, message:'valid category value is requiered'})
     categoryGame: CategoryGame;
 
     @IsArray()

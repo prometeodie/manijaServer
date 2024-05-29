@@ -37,7 +37,7 @@ export class BoardgamesController {
       })
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `Error uploading the Boardgame ${error.message}`
+        message: `Error uploading Boardgame ${error.message}`
       });
     }
   }
@@ -84,7 +84,7 @@ export class BoardgamesController {
     }
   }
 
-  @RolesAccess(Roles.ADMIN,Roles.MASTER)
+  @RolesAccess(Roles.ADMIN)
   @Get('admin')
   public async findAll(
     @Res() res: Response
@@ -108,6 +108,22 @@ export class BoardgamesController {
     try {
       const boardgames = this.boardgamesService.AddManijometroPosition(await this.boardgamesService.findPublishedBoardgames());
       return res.status(HttpStatus.OK).json(boardgames);
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request ${error.message}`,
+      });
+    }
+  }
+
+  @RolesAccess(Roles.ADMIN)
+  @Get('admin-manijometro')
+  public async manijometroVotingGames(
+    @Res() res: Response
+  ) {
+    try {
+      const cleanBoardgames = await this.boardgamesService.getVotingValues()
+      return res.status(HttpStatus.OK).json(cleanBoardgames);
     } catch (error) {
       console.error('Error:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -141,7 +157,7 @@ export class BoardgamesController {
     }
   }
 
-  @RolesAccess(Roles.ADMIN,Roles.MASTER)
+  @RolesAccess(Roles.ADMIN)
   @Patch('edit/:id')
   public async update(
     @Param('id') id: string, 
@@ -155,12 +171,12 @@ export class BoardgamesController {
         })
     }catch(error){
       return res.status(HttpStatus.CONFLICT).json({
-        message:`Failed to updated the Boardgame ${error.message}`
+        message:`Failed to updated Boardgame ${error.message}`
       })
     }
   }
 
-  @RolesAccess(Roles.ADMIN,Roles.MASTER)
+  @RolesAccess(Roles.ADMIN)
   @Patch('manijometro/:id')
   public async updateManijometro(
     @Param('id') id: string, 
@@ -168,18 +184,18 @@ export class BoardgamesController {
     @Res() res:Response
   ) {
     try{
-      await this.boardgamesService.updateManijometro(id, manijometroPoolDto);
+      await this.boardgamesService.updateManijometro(id, manijometroPoolDto );
       return res.status(HttpStatus.OK).json({
         message:'Manijometro has been actualized'
         })
     }catch(error){
       return res.status(HttpStatus.CONFLICT).json({
-        message:`Failed to updated the Manijometro ${error.message}`
+        message:`Failed to updated Manijometro ${error.message}`
       })
     }
   }
 
-  @RolesAccess(Roles.ADMIN,Roles.MASTER)
+  @RolesAccess(Roles.ADMIN)
   @Delete('delete/:id')
   public async remove(
     @Param('id') id: string,
@@ -197,7 +213,7 @@ export class BoardgamesController {
     }
   }
 
-  @RolesAccess(Roles.ADMIN,Roles.MASTER)
+  @RolesAccess(Roles.ADMIN)
   @Delete('delete/img/:path(*)')
   public async removeImg(@Param('path') path: string) {
     try {
@@ -209,4 +225,3 @@ export class BoardgamesController {
   }
 
 }
-

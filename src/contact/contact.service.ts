@@ -33,6 +33,16 @@ export class ContactService {
     }
   }
 
+  async unreadMessagesFilter() {
+    try{
+      return await this.manijaContacModel.find({ hasBeenReaded: false } ).exec();
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
+  
+
   async findOne(id: string) {
     try{
 
