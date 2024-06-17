@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsStrongPassword, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, Matches, MaxLength, MinLength } from 'class-validator';
 
 
 
@@ -10,8 +10,10 @@ export class RegisterUserDto {
     @IsString()
     name: string;
 
-    @MinLength(8)
     @IsStrongPassword()
+    @IsNotEmpty()
+    @MaxLength(20)
+    @Matches(/^[a-zA-Z0-9!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_`{|}~]+$/, { message: 'no se permiten espacios en blancos, revisa que el caracter sea valido' })
     password: string;
 
 

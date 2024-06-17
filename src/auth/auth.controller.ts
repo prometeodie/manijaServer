@@ -43,7 +43,7 @@ export class AuthController {
     @Res() res:Response  ) { 
       try{
         const loginReponse = await this.authService.login( loginDto );
-        return res.status(HttpStatus.OK).json({ message: 'Logged in successfully', user: loginReponse });
+        return res.status(HttpStatus.OK).json({ message: 'Logged in successfully',user :loginReponse.user, token:loginReponse.token });
       }catch(error){
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           message: `There was an error processing the request ${error.message}`,
@@ -75,9 +75,10 @@ export class AuthController {
   ): LoginResponse | Response {
       try{
         const user = req['user'] as User;
+        console.log(req)
         const userAndToken = {
           user,
-          token: this.authService.getJwtToken({ id: user.id, roles: user.roles })
+          token: this.authService.getJwtToken({ id: user.id, roles: user.roles, name: user.name, surname: user.surname })
         }
         res.status(HttpStatus.OK).json(userAndToken);
       }catch(error){

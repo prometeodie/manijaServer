@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
-import { IsEmail, IsEnum, IsOptional, IsString, IsStrongPassword, Matches } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, IsStrongPassword, Matches, MaxLength } from 'class-validator';
 import { Roles } from 'src/utils/roles.enum';
 
 
@@ -24,6 +24,7 @@ export class UpdateAuthDto extends PartialType(CreateUserDto) {
 
     @IsStrongPassword()
     @IsOptional()
+    @MaxLength(20)
     @Matches(/^[a-zA-Z0-9!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_`{|}~]+$/, { message: 'Blank character(s) are not allowed, Check that the special character(s) are valid' })
     password: string;
 
