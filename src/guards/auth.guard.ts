@@ -50,7 +50,7 @@ export class AuthGuard implements CanActivate {
         token, { secret: process.env.JWT_SEED }
       );
         
-      const user = await this.authService.findUserById( payload.id );
+      const user = await this.authService.findUserById( payload._id );
       if ( !user ) throw new UnauthorizedException('User does not exists');
       if ( !user.isActive ) throw new UnauthorizedException('User is not active');
       

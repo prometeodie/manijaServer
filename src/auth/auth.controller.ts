@@ -75,10 +75,9 @@ export class AuthController {
   ): LoginResponse | Response {
       try{
         const user = req['user'] as User;
-        console.log(req)
         const userAndToken = {
           user,
-          token: this.authService.getJwtToken({ id: user.id, roles: user.roles, name: user.name, surname: user.surname })
+          token: this.authService.getJwtToken({ _id: user.id, roles: user.roles, name: user.name, surname: user.surname, nickname:user.nickname })
         }
         res.status(HttpStatus.OK).json(userAndToken);
       }catch(error){
