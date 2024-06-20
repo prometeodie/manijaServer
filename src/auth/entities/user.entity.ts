@@ -6,7 +6,7 @@ import { Roles } from 'src/utils/roles.enum';
 @Schema()
 export class User {
 
-    id?: string;
+    _id?: string;
 
     @Prop({ unique: true, required: true })
     email: string;

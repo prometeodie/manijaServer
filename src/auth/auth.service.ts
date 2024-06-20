@@ -65,7 +65,7 @@ export class AuthService {
       }
   
       const { password:_, ...rest  } = user.toJSON();
-      const token = this.getJwtToken({ _id: user.id, roles: user.roles, name: user.name, surname: user.surname, nickname: user.nickname })
+      const token = this.getJwtToken({ _id: user._id, roles: user.roles, name: user.name, surname: user.surname, nickname: user.nickname })
   
       const userLoggedIn = {
         user: rest,
@@ -143,6 +143,7 @@ export class AuthService {
 
     getJwtToken( payload: JwtPayload ) {
       const token =  this.jwtService.sign(payload);
+      console.log(token)
       return token;
     }
   }
