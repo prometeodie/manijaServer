@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateEventDto } from './create-event.dto';
 import { IsBoolean, IsDateString, IsOptional, IsString, MaxLength } from 'class-validator';
-import { Section } from 'src/helpers/section.enum';
 
 export class UpdateEventDto extends PartialType(CreateEventDto) {
 
@@ -14,10 +13,18 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     @IsDateString()
     @IsOptional()
     eventDate: Date;
+
+    @IsString()
+    @IsOptional()
+    alternativeTxtEventDate: Date;
     
     @IsString()
     @IsOptional()
-    schedule: string;
+    startTime: string;
+
+    @IsString()
+    @IsOptional()
+    finishTime: string;
     
     @IsString()
     @IsOptional()

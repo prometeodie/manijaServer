@@ -10,9 +10,15 @@ export class ManijaEvent {
 
     @Prop({required: true})
     eventDate: Date;
+    
+    @Prop({required: true})
+    alternativeTxtEventDate: Date;
 
     @Prop({required: true})
-    schedule: string;
+    startTime: string;
+
+    @Prop({required: true})
+    finishTime: string;
 
     @Prop({required: true})
     eventPlace: string;

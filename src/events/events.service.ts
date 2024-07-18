@@ -130,7 +130,7 @@ export class EventsService {
   async eliminarObjetosVencidos(): Promise<void> {
     const currentDate = new Date();
     try{
-      await this.manijaEventModel.deleteMany({ eventDate: { $lt: currentDate } });
+      await this.manijaEventModel.deleteMany({ eventDate: { $lt: currentDate, mustBeAutomaticallyDeleted: true } });
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

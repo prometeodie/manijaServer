@@ -11,10 +11,18 @@ export class CreateEventDto {
     @IsDateString()
     @IsOptional()
     eventDate: Date;
+
+    @IsString()
+    @IsOptional()
+    alternativeTxtEventDate: Date;
     
     @IsString()
     @IsOptional()
-    schedule: string;
+    startTime: string;
+
+    @IsString()
+    @IsOptional()
+    finishTime: string;
     
     @IsString()
     @IsOptional()
@@ -27,10 +35,6 @@ export class CreateEventDto {
     @IsString()
     @IsOptional()
     imgName: string;
-    
-    @IsString()
-    @IsOptional()
-    itemName: string;
     
     @IsString()
     @IsOptional()

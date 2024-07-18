@@ -29,18 +29,29 @@ export class EventsController {
     @Body() createEventDto: CreateEventDto,
     @Res() res: Response ) {
       try{
+
         const event = createEventDto;
         const regex = /^#(?:[0-9a-fA-F]{3}){1,2}$/i;
-        if (regex.test(event.eventColor)) {
-          await this.eventsService.create(createEventDto);
-          return res.status(HttpStatus.OK).json({
-            message:'Event has been saved',
-          })
-        } else {
+
+        if(event.mustBeAutomaticallyDeleted){
+          const currentDate = new Date();
+          if (event.eventDate && new Date(event.eventDate) < currentDate) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+              message: 'eventDate cannot be in the past',
+            });
+          }
+        }
+
+        if (!regex.test(event.eventColor)) {
           return res.status(HttpStatus.BAD_REQUEST).json({
-            message: 'eventColor has not an hexadecimal format '
+            message: 'eventColor has not an hexadecimal format',
           });
         }
+
+        await this.eventsService.create(createEventDto);
+        return res.status(HttpStatus.OK).json({
+        message: 'Event has been saved',
+    });
       } catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
           message:   `Error uploading the Event ${error.message}`
