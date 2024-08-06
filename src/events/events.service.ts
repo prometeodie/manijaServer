@@ -23,7 +23,8 @@ export class EventsService {
     try{
       const newEvent = await new this.manijaEventModel( createEventDto );
       newEvent.creationDate = new Date;
-      return newEvent.save()
+      await newEvent.save()
+      return newEvent.id;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

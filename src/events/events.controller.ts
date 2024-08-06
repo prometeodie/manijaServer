@@ -48,9 +48,10 @@ export class EventsController {
           });
         }
 
-        await this.eventsService.create(createEventDto);
+        const id = await this.eventsService.create(createEventDto);
         return res.status(HttpStatus.OK).json({
         message: 'Event has been saved',
+        id:id
     });
       } catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
@@ -101,7 +102,7 @@ export class EventsController {
     }
   }
 
-  @Get('admin')
+  @Get()
   @RolesAccess(Roles.ADMIN)
   public async findAll(
     @Res() res: Response

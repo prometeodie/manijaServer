@@ -5,7 +5,7 @@ export class CreateEventDto {
 
     @IsString()
     @IsNotEmpty()
-    @MaxLength(35)
+    @MaxLength(50)
     title: string;
     
     @IsDateString()
@@ -14,7 +14,8 @@ export class CreateEventDto {
 
     @IsString()
     @IsOptional()
-    alternativeTxtEventDate: Date;
+    @IsOptional()
+    alternativeTxtEventDate: string;
     
     @IsString()
     @IsOptional()

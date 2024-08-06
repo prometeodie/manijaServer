@@ -7,7 +7,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     
     @IsString()
     @IsOptional()
-    @MaxLength(35)
+    @MaxLength(50)
     title: string;
     
     @IsDateString()
@@ -16,7 +16,7 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
 
     @IsString()
     @IsOptional()
-    alternativeTxtEventDate: Date;
+    alternativeTxtEventDate: string;
     
     @IsString()
     @IsOptional()

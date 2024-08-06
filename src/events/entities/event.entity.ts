@@ -11,8 +11,8 @@ export class ManijaEvent {
     @Prop({required: true})
     eventDate: Date;
     
-    @Prop({required: true})
-    alternativeTxtEventDate: Date;
+    @Prop({required: false})
+    alternativeTxtEventDate: string;
 
     @Prop({required: true})
     startTime: string;
@@ -23,13 +23,13 @@ export class ManijaEvent {
     @Prop({required: true})
     eventPlace: string;
 
-    @Prop({required: true})
+    @Prop({required: false})
     imgName: string;
 
     @Prop({required: true})
     eventColor: string;
 
-    @Prop({required: true})
+    @Prop({required: false})
     url: string;
 
     @Prop({required: true})
