@@ -51,7 +51,7 @@ export class EventsController {
         const id = await this.eventsService.create(createEventDto);
         return res.status(HttpStatus.OK).json({
         message: 'Event has been saved',
-        id:id
+        _id:id
     });
       } catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({
@@ -62,7 +62,7 @@ export class EventsController {
 
   @Post('uploadImg/:id')
   @UseInterceptors(FileInterceptor('file', {
-    fileFilter: fileFilter,
+    fileFilter,
     limits: {
       fileSize: 3145728
     },
@@ -81,7 +81,7 @@ export class EventsController {
     try{
       const event = await this.eventsService.findOne(id);
       const imgName = file.filename;
-      this.eventsService.resizeImg(imgName, uploadImgDto.itemName)
+      this.eventsService.resizeImg(imgName, uploadImgDto.itemName);
       event.imgName = imgName
       const {_id, ...newEvent} = event.toJSON();
       const updatedBlog = {

@@ -13,7 +13,6 @@ export const saveImage = (req, file, callback) => {
         return;
     }
     pathCreator(`${currDir}/upload/${section}/${itemName}`)
-
     callback(null, `upload/${section}/${itemName}`);
 }
 
@@ -28,12 +27,14 @@ export const nameImg = (req, file, callback) => {
 export const fileFilter = (req, file, callback) => {
     if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)){
         console.error('Invalid format type. Valid extension formats are: JPG, JPEG, PNG, and GIF');  
-        return callback('Invalid format type. valid extension format JPG, JPEG, PNG y GIF', false);
+        return callback(new Error('Invalid format type. Valid extension formats are: JPG, JPEG, PNG, and GIF'), false);
+        
     }
     callback(null,true)
 }
 
 export const  imgResizing =  (filePath:string,fileName:string, size:number)=>{
+
     let path = `${filePath}/optimize/smallS-${fileName}`;
     let ubication = `${filePath}`
 
@@ -50,7 +51,7 @@ export const  imgResizing =  (filePath:string,fileName:string, size:number)=>{
 
 export const pathCreator = (path:string)=>{
     if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
+        fs.mkdirSync(path,{ recursive: true });
     }
 }
 

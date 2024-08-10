@@ -20,7 +20,7 @@ export class ManijaEvent {
     @Prop({required: true})
     finishTime: string;
 
-    @Prop({required: true})
+    @Prop({required: false})
     eventPlace: string;
 
     @Prop({required: false})
