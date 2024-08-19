@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Res, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 import { CreateUserDto, LoginDto, UpdateAuthDto } from './dto';
@@ -38,18 +38,27 @@ export class AuthController {
 
   @PublicAccess()
   @Post('login')
-  async login( 
+  async login(
     @Body() loginDto: LoginDto,
-    @Res() res:Response  ) { 
-      try{
-        const loginReponse = await this.authService.login( loginDto );
-        return res.status(HttpStatus.OK).json({ message: 'Logged in successfully',user :loginReponse.user, token:loginReponse.token });
-      }catch(error){
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: `There was an error processing the request ${error.message}`,
+    @Res() res: Response,
+  ) {
+    try {
+      const loginReponse = await this.authService.login(loginDto);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Logged in successfully', user: loginReponse.user, token: loginReponse.token });
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'Invalid credentials',
+          status: 401
         });
       }
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request: ${error.message}`,
+      });
     }
+  }
     
   @RolesAccess(Roles.MASTER)
   @Get('all-users')

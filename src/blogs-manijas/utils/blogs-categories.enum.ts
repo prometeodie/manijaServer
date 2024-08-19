@@ -1,7 +1,7 @@
 
 export enum BlogsCategories{
     BOARDGAMES = 'BOARDGAMES',
-    ROL = 'ROL ',
+    ROL = 'ROL',
     EVENTOS = 'EVENTOS',
     COCINA = 'COCINA',
     CRAFTING = 'CRAFTING',

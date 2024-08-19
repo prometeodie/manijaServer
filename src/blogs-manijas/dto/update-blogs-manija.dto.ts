@@ -28,9 +28,9 @@ export class UpdateBlogsManijaDto extends PartialType(CreateBlogsManijaDto) {
     @IsEnum(BlogsCategories,{ each:true, message:'Valid category value Requiered'})
     category:BlogsCategories[]
     
-    @IsArray()
+    @IsString()
     @IsOptional()
-    imgName: string[];
+    imgName: string;
 
     @IsString()
     @IsOptional()

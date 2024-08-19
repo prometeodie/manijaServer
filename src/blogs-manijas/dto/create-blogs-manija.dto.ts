@@ -26,9 +26,9 @@ export class CreateBlogsManijaDto {
     @MinLength(20)
     blogContent: string;
 
-    @IsArray()BlogsCategories
-    @IsOptional()
-    imgName: string[];
+    @IsString()
+    @IsNotEmpty()
+    imgName: string;
 
     @IsString()
     @IsNotEmpty()

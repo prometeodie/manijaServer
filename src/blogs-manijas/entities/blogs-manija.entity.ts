@@ -24,7 +24,7 @@ export class BlogsManija {
     section:Section
 
     @Prop({required:true})
-    imgName:string[]
+    imgName:string
 
     @Prop({required: true})
     creationDate:Date

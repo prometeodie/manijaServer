@@ -8,7 +8,7 @@ import * as fs from 'node:fs';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { BlogsManija } from './entities/blogs-manija.entity';
-import { UploadImgDto } from './dto/upload-blogImg-manija.dto';
+import { BlogsCategories } from './utils/blogs-categories.enum';
 
 
 @Injectable()
@@ -34,6 +34,21 @@ export class BlogsManijasService {
   async findAll() {
     try{
       return await this.blogsManijaModel.find()
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
+  public async findAllWithFilters( category: BlogsCategories, limit: number, offset: number) {
+
+    try{
+      let blogs = await this.blogsManijaModel.find()
+      if (category) {
+        blogs = blogs.filter(blog => blog.category.includes(category));
+      }
+
+      const paginatedBlogs = blogs.slice(offset, offset + limit);
+      return paginatedBlogs;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
@@ -105,36 +120,30 @@ export class BlogsManijasService {
       }
     }
     
-    resizeImg(itemName: string[] ,blogName:string){
-      try{
-        if(itemName.length > 0){
-          const path = `${this.commonPath}/${blogName}`
-          try{
-            itemName.map((file) => imgResizing(path,file,500))
-          }catch(error){
-            console.error('Something wrong happened resizing the image', error)
-            throw error;    
-          }
-        }
-      }catch(error){
-        console.error('Something wrong happened resizing the image', error)
-        throw error;    
-    }
-  }
   
-  deleteImgCatch(req:UploadImgDto, files: Express.Multer.File[]){
-    files.map((file)=>{
-      let imgPath: string;
-      if(file.filename.includes('cardCover')){
-        imgPath = `${this.commonPath}/${req.itemName}/cardCover/${file.filename}`
-      }else{
-        imgPath = `${this.commonPath}/${req.itemName}/${file.filename}`
+  async resizeImg(fileName: string, itemName: string){
+    try{
+      if(fileName){
+        const path = `${this.commonPath}/${itemName}`
+        try{
+          await imgResizing(path,fileName,500)
+        }catch(error){
+          console.error('Something wrong happened resizing the image', error)
+          throw error;    
+        }
       }
-      setTimeout(()=>{
-        if (fs.existsSync(imgPath)) {
-        this.deleteImage(imgPath)
-          }
-        },5000)
-      })
+    }catch(error){
+      console.error('Something wrong happened resizing the image', error)
+      throw error;    
+    }
+}
+  
+deleteImgCatch(fileName: string, itemName: string){
+  const imgPath = `${this.commonPath}/${itemName}/${fileName}`
+    setTimeout(()=>{
+      if (fs.existsSync(imgPath)) {
+      this.deleteImage(imgPath)
+        }
+      },5000)
     }
  }

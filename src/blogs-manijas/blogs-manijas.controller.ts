@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UploadedFiles, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UploadedFiles, UseGuards, Query } from '@nestjs/common';
 import { BlogsManijasService } from './blogs-manijas.service';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
@@ -13,9 +13,10 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { PublicAccess } from 'src/decorators/public.decorator';
+import { BlogsCategories } from './utils/blogs-categories.enum';
 
 
-@Controller('blogsManijas')
+@Controller('blogs')
 @UseGuards( AuthGuard, RolesGuard)
 export class BlogsManijasController {
   constructor(private readonly blogsManijasService: BlogsManijasService) {}
@@ -52,15 +53,15 @@ export class BlogsManijasController {
   @RolesAccess(Roles.ADMIN)
   public async uploadImg(
     @Res() res: Response,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFiles() file: Express.Multer.File,
     @Body() uploadImgDto: UploadImgDto,
     @Param('id') id: string, 
   ){
     try{
       const blog = await this.blogsManijasService.findOne(id);
-      const imgNames = files.map(file => {return file.filename;})
-      this.blogsManijasService.resizeImg(imgNames, uploadImgDto.itemName)
-      imgNames.map(img=> blog.imgName.push(img));
+      const imgName = file.filename
+      this.blogsManijasService.resizeImg(imgName, uploadImgDto.itemName)
+      blog.imgName = imgName
       const {_id, ...newBlog} = blog.toJSON();
       const updatedBlog = newBlog;
       this.blogsManijasService.update(id,updatedBlog)
@@ -68,7 +69,9 @@ export class BlogsManijasController {
         message:'img has been saved',
       })
     }catch(error){
-      this.blogsManijasService.deleteImgCatch(uploadImgDto, files)
+      const imgName = file.filename;
+      const itemName =  uploadImgDto.itemName;
+      this.blogsManijasService.deleteImgCatch(imgName,itemName)
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: `There was an error processing the request ${error.message}`,
       });
@@ -78,18 +81,23 @@ export class BlogsManijasController {
   @Get('admin')
   @RolesAccess(Roles.ADMIN)
   public async findAll(
+    @Query('category') category: BlogsCategories,
+    @Query('page') page: number = 1, 
     @Res() res: Response
-    ) {
-      try {
-        const blogs = await this.blogsManijasService.findAll();
-        return res.status(HttpStatus.OK).json(blogs);
-      } catch (error) {
-        console.error('Error:', error);
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          message: `There was an error processing the request ${error.message}`,
-        });
-      }
+  ) {
+    try {
+      const limit = 10; 
+      const offset = (page - 1) * limit;
+      const blogs = await this.blogsManijasService.findAllWithFilters(category, limit, offset);
+
+      return res.status(HttpStatus.OK).json(blogs);
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request: ${error.message}`,
+      });
     }
+  }
     
     @Get(':id')
     @PublicAccess()
@@ -109,16 +117,24 @@ export class BlogsManijasController {
 
   @Get()
   @PublicAccess()
-  public async findAllAvailableToPublish(@Res() res: Response){
-    try{
-      const blogs = await this.blogsManijasService.findPublishedAboutSections();
-      return res.status(HttpStatus.OK).json(blogs);
-    }catch(error){
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `Error finding Blogs ${error.message}`
-      }); 
+    public async findAllAvailableToPublish(
+      @Query('category') category: BlogsCategories,
+      @Query('page') page: number = 1, 
+      @Res() res: Response
+    ) {
+      try {
+        const limit = 10; 
+        const offset = (page - 1) * limit;
+        const blogs = await this.blogsManijasService.findAllWithFilters(category, limit, offset);
+  
+        return res.status(HttpStatus.OK).json(blogs);
+      } catch (error) {
+        console.error('Error:', error);
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: `There was an error processing the request: ${error.message}`,
+        });
+      }
     }
-  }
 
   @Patch('edit/:id')
   @RolesAccess(Roles.ADMIN)

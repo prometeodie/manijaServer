@@ -73,7 +73,11 @@ export class AuthService {
       }
       return userLoggedIn;
     }catch(error){
-      throw ErrorManager.createSignatureError(error.message);
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException('An unexpected error occurred');
+      }
     }
   
   }

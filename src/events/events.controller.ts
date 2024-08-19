@@ -102,7 +102,7 @@ export class EventsController {
     }
   }
 
-  @Get()
+  @Get('admin')
   @RolesAccess(Roles.ADMIN)
   public async findAll(
     @Res() res: Response
