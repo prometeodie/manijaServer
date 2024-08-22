@@ -43,7 +43,7 @@ export class BlogsManijasService {
 
     try{
       let blogs = await this.blogsManijaModel.find()
-      if (category) {
+      if (category && Object.values(BlogsCategories).includes(category)) {
         blogs = blogs.filter(blog => blog.category.includes(category));
       }
 

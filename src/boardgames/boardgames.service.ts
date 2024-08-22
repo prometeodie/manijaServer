@@ -11,6 +11,7 @@ import { imgResizing } from 'src/helpers/image.helper';
 import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { ManijometroPoolEntity } from './utils/manijometro-interfaces';
+import { CategoryGame } from './utils/boardgames-categories.enum';
 
 
 
@@ -49,6 +50,22 @@ export class BoardgamesService {
     }
   }
 
+  public async findAllWithFilters( category: CategoryGame, limit: number, offset: number): Promise<Boardgame[]> {
+
+    try{
+      let boards = await this.boardgameModel.find();
+      let boardgames = this.AddManijometroPosition(boards);
+      if (category && Object.values(CategoryGame).includes(category)) {
+        boardgames = boardgames.filter(board => board.categoryGame.includes(category));
+      }
+
+      const paginatedBoards = boards.slice(offset, offset + limit);
+      return paginatedBoards;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
   async findPublishedBoardgames(): Promise<Boardgame[]>{
     try{
       return await this.boardgameModel.find({ publish: true }).exec();
@@ -59,7 +76,8 @@ export class BoardgamesService {
 
   async findBoardgamesByTitle(title: string): Promise<Boardgame[]> {
     try{
-      return await this.boardgameModel.find({ title: { $regex: title, $options: 'i' } }).exec();
+      const boards = await this.boardgameModel.find().exec();
+      return this.AddManijometroPosition(boards).filter(board => board.title.includes(title));
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

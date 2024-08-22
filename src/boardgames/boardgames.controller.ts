@@ -13,6 +13,7 @@ import { PublicAccess } from 'src/decorators/public.decorator';
 import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
+import { CategoryGame } from './utils/boardgames-categories.enum';
 
 
 
@@ -84,18 +85,23 @@ export class BoardgamesController {
     }
   }
 
-  @RolesAccess(Roles.ADMIN)
   @Get('admin')
+  @RolesAccess(Roles.ADMIN)
   public async findAll(
+    @Query('category') category: CategoryGame,
+    @Query('page') page: number = 1, 
     @Res() res: Response
   ) {
     try {
-      const boardgames = this.boardgamesService.AddManijometroPosition(await this.boardgamesService.findAll()) ;
+      const limit = 10; 
+      const offset = (page - 1) * limit;
+      const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset);
+
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: `There was an error processing the request ${error.message}`,
+        message: `There was an error processing the request: ${error.message}`,
       });
     }
   }
