@@ -50,16 +50,20 @@ export class BoardgamesService {
     }
   }
 
-  public async findAllWithFilters( category: CategoryGame, limit: number, offset: number): Promise<Boardgame[]> {
+  public async findAllWithFilters( category: CategoryGame, limit: number, offset: number, publicData:boolean): Promise<Boardgame[]> {
 
     try{
-      let boards = await this.boardgameModel.find();
+      let boards = [];await this.boardgameModel.find();
+      if(publicData){
+        boards = await this.findPublishedBoardgames();
+      }else{
+        boards = await this.boardgameModel.find().exec();
+      }
       let boardgames = this.AddManijometroPosition(boards);
       if (category && Object.values(CategoryGame).includes(category)) {
         boardgames = boardgames.filter(board => board.categoryGame.includes(category));
       }
-
-      const paginatedBoards = boards.slice(offset, offset + limit);
+      const paginatedBoards = boardgames.slice(offset, offset + limit);
       return paginatedBoards;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);

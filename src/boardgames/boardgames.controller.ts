@@ -95,8 +95,8 @@ export class BoardgamesController {
     try {
       const limit = 10; 
       const offset = (page - 1) * limit;
-      const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset);
-
+      const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset, false);
+      console.log(boardgames)
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
@@ -109,15 +109,20 @@ export class BoardgamesController {
   @PublicAccess()
   @Get()
   public async findAllAvailableToPublish(
+    @Query('category') category: CategoryGame,
+    @Query('page') page: number = 1, 
     @Res() res: Response
   ) {
     try {
-      const boardgames = this.boardgamesService.AddManijometroPosition(await this.boardgamesService.findPublishedBoardgames());
+      const limit = 10; 
+      const offset = (page - 1) * limit;
+      const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset, true);
+      console.log(boardgames)
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: `There was an error processing the request ${error.message}`,
+        message: `There was an error processing the request: ${error.message}`,
       });
     }
   }
@@ -143,7 +148,6 @@ export class BoardgamesController {
   public async getBoardgamesByTitle(@Query('title') title: string) {
     return this.boardgamesService.findBoardgamesByTitle(title);
   }
-
   @PublicAccess()
   @Get(':id')
   public async findOne(

@@ -39,10 +39,15 @@ export class BlogsManijasService {
     }
   }
 
-  public async findAllWithFilters( category: BlogsCategories, limit: number, offset: number) {
+  public async findAllWithFilters( category: BlogsCategories, limit: number, offset: number, publicData:boolean) {
 
     try{
-      let blogs = await this.blogsManijaModel.find()
+      let blogs = [];
+      if(publicData){
+        blogs = await this.findPublishedBlogs()
+      }else{
+        blogs = await this.blogsManijaModel.find()
+      }
       if (category && Object.values(BlogsCategories).includes(category)) {
         blogs = blogs.filter(blog => blog.category.includes(category));
       }
@@ -70,7 +75,7 @@ export class BlogsManijasService {
     }
   }
 
-  async findPublishedAboutSections(): Promise<BlogsManija[]>{
+  async findPublishedBlogs(): Promise<BlogsManija[]>{
     try{
       return await this.blogsManijaModel.find({ publish: true }).exec();
     }catch(error){

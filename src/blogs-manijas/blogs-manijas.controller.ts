@@ -88,7 +88,7 @@ export class BlogsManijasController {
     try {
       const limit = 10; 
       const offset = (page - 1) * limit;
-      const blogs = await this.blogsManijasService.findAllWithFilters(category, limit, offset);
+      const blogs = await this.blogsManijasService.findAllWithFilters(category, limit, offset, false);
 
       return res.status(HttpStatus.OK).json(blogs);
     } catch (error) {
@@ -125,7 +125,7 @@ export class BlogsManijasController {
       try {
         const limit = 10; 
         const offset = (page - 1) * limit;
-        const blogs = await this.blogsManijasService.findAllWithFilters(category, limit, offset);
+        const blogs = await this.blogsManijasService.findAllWithFilters(category, limit, offset, true);
   
         return res.status(HttpStatus.OK).json(blogs);
       } catch (error) {
