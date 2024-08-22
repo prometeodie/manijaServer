@@ -28,7 +28,7 @@ export class BoardgamesService {
   async create(createBoardgameDto: CreateBoardgameDto) {
     try{
       const newBoardGame = await  new this.boardgameModel( createBoardgameDto );
-    if((await this.findBoardgamesByTitle(newBoardGame.title)).length > 1){
+    if((await this.findBoardgamesByTitle(newBoardGame.title, false)).length !== 0){
       throw new ErrorManager({
         type:'CONFLICT',
         message:'boardgame alredy exist'
@@ -78,9 +78,14 @@ export class BoardgamesService {
     }
   }
 
-  async findBoardgamesByTitle(title: string): Promise<Boardgame[]> {
+  async findBoardgamesByTitle(title: string, publicData:boolean): Promise<Boardgame[]> {
     try{
-      const boards = await this.boardgameModel.find().exec();
+      let boards = [];
+      if(publicData){
+        boards = await this.findPublishedBoardgames();
+      }else{
+        boards = await this.boardgameModel.find().exec();
+      }
       return this.AddManijometroPosition(boards).filter(board => board.title.toLocaleLowerCase().includes(title.toLocaleLowerCase()));
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);

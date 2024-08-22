@@ -146,8 +146,15 @@ export class BoardgamesController {
   @PublicAccess()
   @Get('findboardgame')
   public async getBoardgamesByTitle(@Query('title') title: string) {
-    return this.boardgamesService.findBoardgamesByTitle(title);
+    return this.boardgamesService.findBoardgamesByTitle(title,true);
   }
+
+  @RolesAccess(Roles.ADMIN)
+  @Get('findboardgame/admin')
+  public async getBoardgamesByTitleAdmin(@Query('title') title: string) {
+    return this.boardgamesService.findBoardgamesByTitle(title,false);
+  }
+
   @PublicAccess()
   @Get(':id')
   public async findOne(
