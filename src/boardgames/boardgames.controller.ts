@@ -96,7 +96,6 @@ export class BoardgamesController {
       const limit = 10; 
       const offset = (page - 1) * limit;
       const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset, false);
-      console.log(boardgames)
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
@@ -117,7 +116,6 @@ export class BoardgamesController {
       const limit = 10; 
       const offset = (page - 1) * limit;
       const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset, true);
-      console.log(boardgames)
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
