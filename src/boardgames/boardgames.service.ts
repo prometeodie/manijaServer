@@ -77,7 +77,7 @@ export class BoardgamesService {
   async findBoardgamesByTitle(title: string): Promise<Boardgame[]> {
     try{
       const boards = await this.boardgameModel.find().exec();
-      return this.AddManijometroPosition(boards).filter(board => board.title.includes(title));
+      return this.AddManijometroPosition(boards).filter(board => board.title.toLocaleLowerCase().includes(title.toLocaleLowerCase()));
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
