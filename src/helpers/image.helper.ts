@@ -37,7 +37,6 @@ export const fileFilter = (req, file, callback) => {
 export const  imgResizing =  (filePath:string,fileName:string, size:number)=>{
 
     let path = `${filePath}/optimize/smallS-${fileName}`;
-    console.log('algo')
     let ubication = `${filePath}`
 
     if(fileName.includes('cardCover')){

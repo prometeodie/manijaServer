@@ -60,7 +60,6 @@ export class BlogsManijasController {
     try{
       const blog = await this.blogsManijasService.findOne(id);
       const imgName = file[0].filename
-      console.log(imgName)
       this.blogsManijasService.resizeImg(imgName, id)
       blog.imgName = imgName
       const {_id, ...newBlog} = blog.toJSON();
