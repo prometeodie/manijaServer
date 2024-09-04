@@ -187,10 +187,10 @@ export class BoardgamesService {
     return boards
   }
 
-  resizeImg(itemName:string[], boardName:string){
+  resizeImg(itemName:string[], id:string){
     try{
       if(itemName.length > 0){
-        const path = `${this.commonPath}/${boardName}`
+        const path = `${this.commonPath}/${id}`
         try{
           itemName.map((file) => imgResizing(path,file,500))
           return true;
@@ -216,13 +216,13 @@ async deleteImage(imagePath: string) {
 }
 }
 
-deleteImgCatch(req:UploadImgDto, files: Express.Multer.File[]){
+deleteImgCatch(id:string, files: Express.Multer.File[]){
   files.map((file)=>{
     let imgPath: string;
     if(file.filename.includes('cardCover')){
-      imgPath = `${this.commonPath}/${req.itemName}/cardCover/${file.filename}`
+      imgPath = `${this.commonPath}/${id}/cardCover/${file.filename}`
     }else{
-      imgPath = `${this.commonPath}/${req.itemName}/${file.filename}`
+      imgPath = `${this.commonPath}/${id}/${file.filename}`
     }
     setTimeout(()=>{
       if (fs.existsSync(imgPath)) {

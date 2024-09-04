@@ -64,21 +64,21 @@ export class BoardgamesController {
     try{
       const boardgame = await this.boardgamesService.findOne(id);
       const imgNames = files.map(file => {return file.filename;})
-      this.boardgamesService.resizeImg(imgNames, boardgame.title)
+      this.boardgamesService.resizeImg(imgNames, id)
       imgNames.map(img =>{
         (img.includes('cardCover'))? boardgame.cardCoverImgName = img : boardgame.imgName.push(img);
       });
       const {_id, ...newBoard} = boardgame.toJSON();
       const updatedBoard = {
         ...newBoard,
-        itemName: uploadImgDto.itemName
+        itemName: id
       };
       this.boardgamesService.update(id,updatedBoard)
       return res.status(HttpStatus.OK).json({
         message:'img has been saved',
       })
     }catch(error){
-      this.boardgamesService.deleteImgCatch(uploadImgDto, files)
+      this.boardgamesService.deleteImgCatch(id, files)
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: `There was an error processing the request ${error.message}`,
       });

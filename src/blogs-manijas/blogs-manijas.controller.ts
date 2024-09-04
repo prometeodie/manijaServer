@@ -59,8 +59,9 @@ export class BlogsManijasController {
   ){
     try{
       const blog = await this.blogsManijasService.findOne(id);
-      const imgName = file.filename
-      this.blogsManijasService.resizeImg(imgName, uploadImgDto.itemName)
+      const imgName = file[0].filename
+      console.log(imgName)
+      this.blogsManijasService.resizeImg(imgName, id)
       blog.imgName = imgName
       const {_id, ...newBlog} = blog.toJSON();
       const updatedBlog = newBlog;
@@ -70,7 +71,7 @@ export class BlogsManijasController {
       })
     }catch(error){
       const imgName = file.filename;
-      const itemName =  uploadImgDto.itemName;
+      const itemName =  id;
       this.blogsManijasService.deleteImgCatch(imgName,itemName)
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: `There was an error processing the request ${error.message}`,

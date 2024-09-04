@@ -10,9 +10,5 @@ export class UploadImgDto {
         message:'Valid Section value Requiered'
     })
     section:Section
-
-    @IsString()
-    @IsNotEmpty()
-    itemName: string; //Is the title without spaces
    
 }

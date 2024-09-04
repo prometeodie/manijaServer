@@ -126,10 +126,10 @@ export class BlogsManijasService {
     }
     
   
-  async resizeImg(fileName: string, itemName: string){
+  async resizeImg(fileName: string, id: string){
     try{
       if(fileName){
-        const path = `${this.commonPath}/${itemName}`
+        const path = `${this.commonPath}/${id}`
         try{
           await imgResizing(path,fileName,500)
         }catch(error){

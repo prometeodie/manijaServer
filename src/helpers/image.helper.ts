@@ -4,16 +4,17 @@ import * as path from 'path';
 import * as sharp from 'sharp';
 
 export const saveImage = (req, file, callback) => {
-    const { section, itemName } = req.body; 
+    const { section } = req.body; 
     const currDir = process.cwd();
+    const {id} = req.params;
 
     if(file.originalname.includes('cardCover')){
-        pathCreator(`${currDir}/upload/${section}/${itemName}/cardCover`)
-        callback(null, `upload/${section}/${itemName}/cardCover`);
+        pathCreator(`${currDir}/upload/${section}/${id}/cardCover`)
+        callback(null, `upload/${section}/${id}/cardCover`);
         return;
     }
-    pathCreator(`${currDir}/upload/${section}/${itemName}`)
-    callback(null, `upload/${section}/${itemName}`);
+    pathCreator(`${currDir}/upload/${section}/${id}`)
+    callback(null, `upload/${section}/${id}`);
 }
 
 export const nameImg = (req, file, callback) => {
@@ -36,6 +37,7 @@ export const fileFilter = (req, file, callback) => {
 export const  imgResizing =  (filePath:string,fileName:string, size:number)=>{
 
     let path = `${filePath}/optimize/smallS-${fileName}`;
+    console.log('algo')
     let ubication = `${filePath}`
 
     if(fileName.includes('cardCover')){

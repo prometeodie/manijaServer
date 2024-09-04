@@ -81,12 +81,12 @@ export class EventsController {
     try{
       const event = await this.eventsService.findOne(id);
       const imgName = file.filename;
-      this.eventsService.resizeImg(imgName, uploadImgDto.itemName);
+      this.eventsService.resizeImg(imgName, id);
       event.imgName = imgName
       const {_id, ...newEvent} = event.toJSON();
       const updatedBlog = {
         ...newEvent,
-        itemName: uploadImgDto.itemName
+        itemName: id
       };
       this.eventsService.update(id,updatedBlog)
       return res.status(HttpStatus.OK).json({
@@ -94,7 +94,7 @@ export class EventsController {
       })
     }catch(error){
       const imgName = file.filename;
-      const itemName =  uploadImgDto.itemName;
+      const itemName =  id;
       this.eventsService.deleteImgCatch(imgName,itemName)
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: `There was an error processing the request ${error.message}`,
