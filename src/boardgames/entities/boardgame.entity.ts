@@ -58,7 +58,7 @@ export class Boardgame {
     @Prop({required: true})
     cardCoverImgName:string;
 
-    @Prop({required: true})
+    @Prop({required: false})
     imgName:string[];
 
     @Prop({required: true})

@@ -13,7 +13,7 @@ export class AboutSection {
     @Prop({required: true})
     creationDate:Date;
 
-    @Prop({required: true})
+    @Prop({required: false})
     imgName:string;
 
     @Prop({required: true})

@@ -23,7 +23,7 @@ export class BlogsManija {
     @Prop({required:true})
     section:Section
 
-    @Prop({required:true})
+    @Prop({required:false})
     imgName:string
 
     @Prop({required: true})
