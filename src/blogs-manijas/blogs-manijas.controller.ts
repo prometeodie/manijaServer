@@ -28,9 +28,10 @@ export class BlogsManijasController {
     @Res() res: Response ) {
       try{
         const blog = createBlogsManijaDto;
-        await this.blogsManijasService.create(blog);
+        const id = await this.blogsManijasService.create(blog);
         return res.status(HttpStatus.OK).json({
           message:'Blog has been saved',
+          _id:id
         })
       } catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({

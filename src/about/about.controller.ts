@@ -27,9 +27,10 @@ export class AboutController {
     @Res() res: Response ) {
       try{
         const aboutSection = createAboutDto;
-        await this.aboutService.create(aboutSection);
+        const id = await this.aboutService.create(aboutSection);
         return res.status(HttpStatus.OK).json({
           message:'About section has been saved',
+          _id:id,
         })
       }catch(error){
         return res.status(HttpStatus.BAD_REQUEST).json({

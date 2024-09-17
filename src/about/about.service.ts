@@ -23,7 +23,8 @@ export class AboutService {
     try{  
       const newAboutSection = await new this.aboutSectionModel( createAboutDto );
       newAboutSection.creationDate = new Date;
-      return newAboutSection.save()
+      await newAboutSection.save()
+      return newAboutSection.id;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

@@ -14,11 +14,11 @@ export class BlogsManija {
     @Prop({required: true})
     writedBy:string;
     
-    @Prop({minlength:20, required: true})
+    @Prop({required: true})
     blogContent:string;
 
     @Prop({required: true})
-    category:BlogsCategories[]
+    category:BlogsCategories
 
     @Prop({required:true})
     section:Section

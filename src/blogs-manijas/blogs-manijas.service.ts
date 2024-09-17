@@ -25,7 +25,8 @@ export class BlogsManijasService {
     try{
       const newBlog = await new this.blogsManijaModel( createBlogsManijaDto );
       newBlog.creationDate = new Date;
-      return newBlog.save()
+      await newBlog.save()
+      return newBlog.id;
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

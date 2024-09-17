@@ -34,7 +34,7 @@ export class BoardgamesController {
       const id = await this.boardgamesService.create(boardgame);
       return res.status(HttpStatus.OK).json({
         message:'Boardgame has been saved',
-        id:id
+        _id:id
       })
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({

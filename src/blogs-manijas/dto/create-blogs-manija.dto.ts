@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { Section } from "src/helpers/section.enum";
 import { BlogsCategories } from "../utils/blogs-categories.enum";
 
@@ -17,17 +17,15 @@ export class CreateBlogsManijaDto {
     @IsOptional()
     writedBy: string;
 
-    @IsArray()
     @IsNotEmpty()
     @IsEnum(BlogsCategories,{ each:true, message:'Valid category value Requiered'})
-    category:BlogsCategories[]
+    category:BlogsCategories
     
     @IsString()
-    @MinLength(20)
     blogContent: string;
 
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     imgName: string;
 
     @IsString()
