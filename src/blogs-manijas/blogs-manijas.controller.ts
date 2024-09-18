@@ -1,9 +1,9 @@
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UploadedFiles, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, HttpStatus, UseGuards, Query, UploadedFile } from '@nestjs/common';
 import { BlogsManijasService } from './blogs-manijas.service';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
 import { Response } from 'express';
@@ -41,7 +41,7 @@ export class BlogsManijasController {
   }
 
   @Post('uploadImg/:id')
-  @UseInterceptors(FilesInterceptor('files', 4, {
+  @UseInterceptors(FileInterceptor('file', {
     fileFilter: fileFilter,
     limits: {
       fileSize: 3145728
@@ -54,17 +54,20 @@ export class BlogsManijasController {
   @RolesAccess(Roles.ADMIN)
   public async uploadImg(
     @Res() res: Response,
-    @UploadedFiles() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
     @Body() uploadImgDto: UploadImgDto,
     @Param('id') id: string, 
   ){
     try{
       const blog = await this.blogsManijasService.findOne(id);
-      const imgName = file[0].filename
+      const imgName = file.filename
       this.blogsManijasService.resizeImg(imgName, id)
       blog.imgName = imgName
       const {_id, ...newBlog} = blog.toJSON();
-      const updatedBlog = newBlog;
+      const updatedBlog = {
+        ...newBlog,
+        itemName: id
+      };;
       this.blogsManijasService.update(id,updatedBlog)
       return res.status(HttpStatus.OK).json({
         message:'img has been saved',

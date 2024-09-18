@@ -43,14 +43,14 @@ export class BlogsManijasService {
   public async findAllWithFilters( category: BlogsCategories, limit: number, offset: number, publicData:boolean) {
 
     try{
-      let blogs = [];
+      let blogs:BlogsManija[] = [];
       if(publicData){
         blogs = await this.findPublishedBlogs()
       }else{
         blogs = await this.blogsManijaModel.find()
       }
       if (category && Object.values(BlogsCategories).includes(category)) {
-        blogs = blogs.filter(blog => blog.category.includes(category));
+        blogs = blogs.filter(blog => blog.category === category);
       }
 
       const paginatedBlogs = blogs.slice(offset, offset + limit);

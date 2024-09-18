@@ -84,11 +84,11 @@ export class EventsController {
       this.eventsService.resizeImg(imgName, id);
       event.imgName = imgName
       const {_id, ...newEvent} = event.toJSON();
-      const updatedBlog = {
+      const updatedEvent = {
         ...newEvent,
         itemName: id
       };
-      this.eventsService.update(id,updatedBlog)
+      this.eventsService.update(id,updatedEvent)
       return res.status(HttpStatus.OK).json({
         message:'img has been saved',
       })

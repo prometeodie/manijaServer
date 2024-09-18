@@ -8,7 +8,7 @@ export class BlogsManija {
     @Prop({required: true})
     title: string;
     
-    @Prop({required: true})
+    @Prop({required: false})
     subTitle: string;
     
     @Prop({required: true})
