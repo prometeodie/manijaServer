@@ -16,46 +16,46 @@ export class Boardgame {
     @Prop({required: true})
     categoryGame: CategoryGame;
 
-    @Prop({required: true})
+    @Prop({required: false})
     categoryChips: string[];
 
-    @Prop({required: true})
+    @Prop({required: false})
     minPlayers: number;
 
-    @Prop({required: true})
+    @Prop({required: false})
     maxPlayers: number;
 
-    @Prop({required: true})
+    @Prop({required: false})
     duration: number;
     
-    @Prop({required: true})
+    @Prop({required: false})
     manijometroPool: ManijometroPoolEntity[];
 
-    @Prop({required: true,default: 0})
+    @Prop({required: false, default: 0})
     manijometro: number;
 
     @Prop({required: false})
     manijometroPosition: number;
 
-    @Prop({required: true})
+    @Prop({required: false})
     gameReview: string;
 
-    @Prop({required: true})
+    @Prop({required: false})
     dificulty: Dificulty;
 
-    @Prop({required: true})
+    @Prop({required: false})
     replayability: Replayability;
 
-    @Prop({required: true})
+    @Prop({required: false})
     howToPlayUrl: string;
 
-    @Prop({required: true})
+    @Prop({required: false})
     reel: Reel[];
 
     @Prop({required:true})
     section:Section
 
-    @Prop({required: true})
+    @Prop({required: false})
     cardCoverImgName:string;
 
     @Prop({required: false})

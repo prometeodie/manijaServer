@@ -8,7 +8,6 @@ import { ErrorManager } from 'src/utils/error.manager';
 import * as fs from 'node:fs';
 
 import { imgResizing } from 'src/helpers/image.helper';
-import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { ManijometroPoolEntity } from './utils/manijometro-interfaces';
 import { CategoryGame } from './utils/boardgames-categories.enum';

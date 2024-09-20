@@ -1,5 +1,5 @@
 
 export class Reel {
-    reelUrl:string;
+    reelUrl?:string;
     plataform: string
 }

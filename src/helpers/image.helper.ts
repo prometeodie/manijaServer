@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import * as sharp from 'sharp';
+import { BadRequestException } from '@nestjs/common';
 
 export const saveImage = (req, file, callback) => {
     const { section } = req.body; 
@@ -26,9 +27,9 @@ export const nameImg = (req, file, callback) => {
 }
 
 export const fileFilter = (req, file, callback) => {
-    if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)){
+    if(!file.originalname.match(/\.(jpg|jpeg|png|gif|webp)$/)){
         console.error('Invalid format type. Valid extension formats are: JPG, JPEG, PNG, and GIF');  
-        return callback(new Error('Invalid format type. Valid extension formats are: JPG, JPEG, PNG, and GIF'), false);
+        return callback(new BadRequestException('Invalid format type. Valid extension formats are: JPG, JPEG, PNG, and GIF'), false);
         
     }
     callback(null,true)
