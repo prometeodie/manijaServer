@@ -204,15 +204,22 @@ export class BoardgamesService {
   }
 }
 
-async deleteImage(imagePath: string) {
-  try{
-    const fs = require('fs').promises
-    await fs.rm(imagePath, { recursive: true })
-  return true;
-} catch (error){
-  console.error('Something wrong happened removing the file', error)
-  throw error;
-}
+async deleteImage(imagePath: string): Promise<boolean> {
+  try {
+    const fs = require('fs').promises;
+    
+    await fs.rm(imagePath, { recursive: true });
+
+    return true;
+  } catch (error: any) {
+    if (error.code === 'ENOENT') {
+      console.warn(`El archivo o directorio no existe: ${imagePath}`);
+      return false;
+    }
+
+    console.error('Something wrong happened removing the file', error);
+    throw error;
+  }
 }
 
 deleteImgCatch(id:string, files: Express.Multer.File[]){
