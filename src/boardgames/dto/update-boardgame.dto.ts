@@ -36,6 +36,11 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
     @IsNumber()
     @IsOptional()
     @Transform(value => new StringToNumberTransformer().to(value))
+    minAge: number;
+
+    @IsNumber()
+    @IsOptional()
+    @Transform(value => new StringToNumberTransformer().to(value))
     duration: number;
 
     @IsString()
@@ -78,10 +83,6 @@ export class UpdateBoardgameDto extends PartialType(CreateBoardgameDto) {
     @IsArray()
     @IsOptional()
     imgName:string[];
-
-    @IsString()
-    @IsOptional()
-    itemName: string;
 
     @IsBoolean()
     @IsOptional()

@@ -21,9 +21,12 @@ export class Boardgame {
 
     @Prop({required: false})
     minPlayers: number;
-
+    
     @Prop({required: false})
     maxPlayers: number;
+
+    @Prop({required: false})
+    minAge: number;
 
     @Prop({required: false})
     duration: number;

@@ -39,6 +39,11 @@ export class CreateBoardgameDto {
     @IsNumber()
     @IsOptional()
     @Transform(value => new StringToNumberTransformer().to(value))
+    minAge: number;
+
+    @IsNumber()
+    @IsOptional()
+    @Transform(value => new StringToNumberTransformer().to(value))
     duration: number;
 
     @IsString()
