@@ -12,11 +12,11 @@ export class UpdateEventDto extends PartialType(CreateEventDto) {
     
     @IsDateString()
     @IsOptional()
-    eventDate: Date;
+    eventDate: Date | null;
 
     @IsString()
     @IsOptional()
-    alternativeTxtEventDate: string;
+    alternativeTxtEventDate: string | null;
     
     @IsString()
     @IsOptional()

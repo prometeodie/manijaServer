@@ -8,11 +8,11 @@ export class ManijaEvent {
     @Prop({required: true})
     title: string;
 
-    @Prop({required: true})
-    eventDate: Date;
+    @Prop({required: false})
+    eventDate: Date | null;
     
     @Prop({required: false})
-    alternativeTxtEventDate: string;
+    alternativeTxtEventDate: string | null;
 
     @Prop({required: true})
     startTime: string;

@@ -10,12 +10,12 @@ export class CreateEventDto {
     
     @IsDateString()
     @IsOptional()
-    eventDate: Date;
+    eventDate: Date | null;
 
     @IsString()
     @IsOptional()
     @IsOptional()
-    alternativeTxtEventDate: string;
+    alternativeTxtEventDate: string | null;
     
     @IsString()
     @IsOptional()
