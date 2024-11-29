@@ -94,8 +94,8 @@ export class BoardgamesService {
   async getVotingValues(){
     try{
       const boardgames = await this.boardgameModel.find();
-
-      return boardgames.map(({ id,title,manijometroPool,manijometro,cardCoverImgName }) =>{ return { id, title, manijometroPool, manijometro, cardCoverImgName} })
+      const boardgamesPosition = this.AddManijometroPosition(boardgames);
+      return boardgamesPosition.map(({ _id,title,manijometroPool,manijometroPosition,cardCoverImgName }) =>{ return { _id, title, manijometroPool, manijometroPosition, cardCoverImgName} })
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }

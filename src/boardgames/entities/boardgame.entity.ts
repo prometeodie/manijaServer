@@ -10,6 +10,9 @@ import { ManijometroPoolEntity } from "../utils/manijometro-interfaces";
 @Schema()
 export class Boardgame {
 
+    @Prop({required: false})
+    _id: string;
+
     @Prop({required: true})
     title: string;
 
