@@ -14,6 +14,7 @@ import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { CategoryGame } from './utils/boardgames-categories.enum';
+import { ErrorManager } from 'src/utils/error.manager';
 
 
 
@@ -133,6 +134,30 @@ export class BoardgamesController {
     try {
       const cleanBoardgames = await this.boardgamesService.getVotingValues()
       return res.status(HttpStatus.OK).json(cleanBoardgames);
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request ${error.message}`,
+      });
+    }
+  }
+
+  @RolesAccess(Roles.ADMIN)
+  @Get('game-manijometro/:id')
+  public async manijometroGame(
+    @Param('id') id: string,
+    @Res() res: Response
+  ) {
+    try {
+      const cleanBoardgames = await this.boardgamesService.getVotingValues()
+      const boardgame = cleanBoardgames.filter(boardgame => {return boardgame._id === id})[0]
+      if ( !boardgame ){
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'boardgame does not exist'
+        })
+      }
+      return res.status(HttpStatus.OK).json(boardgame);
     } catch (error) {
       console.error('Error:', error);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
