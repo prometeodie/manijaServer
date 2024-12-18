@@ -150,7 +150,7 @@ export class BoardgamesController {
   ) {
     try {
       const cleanBoardgames = await this.boardgamesService.getVotingValues()
-      const boardgame = cleanBoardgames.filter(boardgame => {return boardgame._id === id})[0]
+      const boardgame = cleanBoardgames.filter(boardgame => {return boardgame._id.toString() === id})[0]
       if ( !boardgame ){
         throw new ErrorManager({
           type:'NOT_FOUND',

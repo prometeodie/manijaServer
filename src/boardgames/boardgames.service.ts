@@ -3,7 +3,7 @@ import { CreateBoardgameDto } from './dto/create-boardgame.dto';
 import { UpdateBoardgameDto } from './dto/update-boardgame.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Boardgame } from './entities/boardgame.entity';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ErrorManager } from 'src/utils/error.manager';
 import * as fs from 'node:fs';
 
@@ -135,18 +135,29 @@ export class BoardgamesService {
 
   async updateManijometro(id:string, manijometroPoolDto:ManijometroPoolDto ){
     try{
-      const boardgame = await this.boardgameModel.findById(id)
+      if (!Types.ObjectId.isValid(id)) {
+        throw new ErrorManager({
+          type: 'BAD_REQUEST',
+          message: 'Invalid ID format',
+        });
+      }
+
+      const boardgame = await this.findOne(id);
       const { userId, manijometroValuesPool, totalManijometroUserValue } = manijometroPoolDto; 
-
-      const existingVote = boardgame.manijometroPool.find(userVote => userVote.userId === userId);
-
-      if (existingVote) {
-        existingVote.manijometroValuesPool = manijometroValuesPool;
-        existingVote.totalManijometroUserValue = totalManijometroUserValue;
-      } else {
+      if(!boardgame.manijometroPool) {
+        throw new ErrorManager({
+          type: 'NOT_FOUND',
+          message: 'Something goes wrong',
+        });
+      }
+        const existingVote = boardgame.manijometroPool.find(userVote => userVote.userId === userId);
+        if (existingVote) {
+          existingVote.manijometroValuesPool = manijometroValuesPool;
+          existingVote.totalManijometroUserValue = totalManijometroUserValue;
+        }
+       else {
         boardgame.manijometroPool.push(manijometroPoolDto);
       }
-      
       boardgame.manijometro = this.manijometroTotalValue(boardgame.manijometroPool);
 
         const manijometroPool = await this.boardgameModel.findByIdAndUpdate( id, boardgame,{ new: true });
