@@ -82,7 +82,7 @@ export class AuthGuard implements CanActivate {
       const currentDate = new Date();
       return expirationDate < currentDate;
     }
-  
+  console.log(decoded)
     return true;
   }
 }

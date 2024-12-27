@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
@@ -109,6 +109,21 @@ export class AuthService {
     }
   }
 
+  async findUserByIdReturnComplete( id: string ) {
+    try{
+      const user = await this.userModel.findById( id );
+      if ( !user){
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'User does not exist'
+        })
+      }
+      return user;
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
 
  async update(id: string, updateAuthDto: UpdateAuthDto) {
     try{
@@ -129,6 +144,22 @@ export class AuthService {
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
+  }
+
+  async updatePassword(id: string, currentPassword: string, newPassword: string): Promise<void> {
+        // Obtén al usuario de la base de datos
+        const user = await this.findUserByIdReturnComplete(id);
+        if (!user) {
+          throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        // Verifica que la contraseña actual coincida
+        const isMatch = await bcryptjs.compare(currentPassword, user.password);
+        if (!isMatch) {
+          throw new HttpException('Current password is incorrect', HttpStatus.BAD_REQUEST);
+        }
+        // Hashea la nueva contraseña
+        const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    await this.userModel.findByIdAndUpdate(id, { password: hashedPassword });
   }
 
   async remove(id: string) {

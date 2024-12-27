@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Res, HttpStatus, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Res, HttpStatus, UnauthorizedException, Req, HttpException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 import { CreateUserDto, LoginDto, UpdateAuthDto } from './dto';
@@ -12,6 +12,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 import { RolesAccess } from 'src/decorators/roles.decorator';
 import { PublicAccess } from 'src/decorators/public.decorator';
 import { Roles } from 'src/utils/roles.enum';
+import { ChangePasswordDto } from './dto/update.user.pass-auth.dto';
 
 @Controller('auth')
 @UseGuards( AuthGuard, RolesGuard )
@@ -127,6 +128,18 @@ export class AuthController {
         message: `There was an error processing the request ${error.message}`,
       });
     }
+  }
+  
+  @RolesAccess(Roles.ADMIN)
+  @UseGuards(AuthGuard)
+  @Patch('change-password')
+  async changePassword(@Req() req, @Body() changePasswordDto: ChangePasswordDto) {
+    console.log('User in controller:', req);
+    const userId = req.user._id;
+    const { currentPassword, newPassword } = changePasswordDto;
+    await this.authService.updatePassword(userId, currentPassword, newPassword);
+
+    return { message: 'Password updated successfully' };
   }
 
   @RolesAccess(Roles.MASTER)
