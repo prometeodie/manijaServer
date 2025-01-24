@@ -11,6 +11,7 @@ import { imgResizing } from 'src/helpers/image.helper';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { ManijometroPoolEntity } from './utils/manijometro-interfaces';
 import { CategoryGame } from './utils/boardgames-categories.enum';
+import { UpdateRoulette } from './dto/update-roulette.dto';
 
 
 
@@ -34,6 +35,9 @@ export class BoardgamesService {
       })
     }
       newBoardGame.creationDate = new Date();
+      (newBoardGame.publish)?
+      newBoardGame.roulette = true: 
+      newBoardGame.roulette = false; 
       await newBoardGame.save();
       return newBoardGame.id;
     }catch(error){
@@ -72,6 +76,14 @@ export class BoardgamesService {
   async findPublishedBoardgames(): Promise<Boardgame[]>{
     try{
       return await this.boardgameModel.find({ publish: true }).exec();
+    }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
+  async findAllForRoulette(){
+    try{
+      return await this.boardgameModel.find({ roulette: true }).exec();
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
@@ -121,6 +133,27 @@ export class BoardgamesService {
   async update(id: string, updateBoardgameDto: UpdateBoardgameDto) {
     try{
       const boardgame = await this.boardgameModel.findByIdAndUpdate(id, updateBoardgameDto, { new: true } );
+      if(!boardgame.publish){
+         await this.boardgameModel.findByIdAndUpdate(id,{roulette:false}, { new: true } )
+      }
+      if (!boardgame) {
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'boardgame does not exist'
+        })
+      }
+      return boardgame;
+    }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+
+  async updateRoulette(updateRoulette: UpdateRoulette){
+    const {_id, roulette} = updateRoulette;
+    console.log(roulette)
+    try{
+      const boardgame = await this.boardgameModel.findByIdAndUpdate(_id, {roulette}, { new: true } );
+      console.log(boardgame)
       if (!boardgame) {
         throw new ErrorManager({
           type:'NOT_FOUND',

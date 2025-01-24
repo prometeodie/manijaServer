@@ -68,6 +68,9 @@ export class Boardgame {
 
     @Prop({required: true})
     creationDate:Date;
+
+    @Prop({required: true})
+    roulette:Boolean;
     
     @Prop({required: true})
     publish:Boolean;

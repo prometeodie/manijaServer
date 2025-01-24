@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ErrorManager } from 'src/utils/error.manager';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as fs from 'node:fs';
 
 import { CreateAboutDto } from './dto/create-about.dto';
-import { UpdateAboutDto } from './dto/update-about.dto';
 import { imgResizing } from 'src/helpers/image.helper';
 import { AboutSection } from './entities/about.entity';
+import { UpdateAboutItemsOrderDto } from './dto/organize-item.dto';
+import { UpdateAboutDto } from './dto/update-about.dto';
 
 
 @Injectable()
@@ -22,7 +23,9 @@ export class AboutService {
   async create(createAboutDto: CreateAboutDto) {
     try{  
       const newAboutSection = await new this.aboutSectionModel( createAboutDto );
+      const amountOfitems = (await this.findAll()).length;
       newAboutSection.creationDate = new Date;
+      newAboutSection.position = amountOfitems + 1;
       await newAboutSection.save()
       return newAboutSection.id;
     }catch(error){
@@ -76,6 +79,27 @@ export class AboutService {
     }catch(error){
       throw ErrorManager.createSignatureError(error.message);
     }
+  }
+
+  async updateOrder(orderedIds: UpdateAboutItemsOrderDto[]){
+    try{
+      for (let i = 0; i < orderedIds.length; i++) {
+        const aboutSectionItems = await this.aboutSectionModel.findByIdAndUpdate(orderedIds[i], { position: i });
+      if (!aboutSectionItems) {
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'About Section does not exist'
+        })
+      }
+    }
+    return { message: 'Order updated successfully' };
+  }catch(error){
+      throw ErrorManager.createSignatureError(error.message);
+    }
+  }
+  
+  sortItemsByPosition(items: AboutSection[] ){
+    return items.sort((a, b) => a.position - b.position);
   }
 
   async remove(id: string) {

@@ -42,9 +42,15 @@ export class AuthService {
       
     } catch (error) {
       if( error.code === 11000 ) {
-        throw new BadRequestException(`${ createUserDto.email } already exists!`)
+        throw new BadRequestException({
+          message: `${createUserDto.email} already exists!`,
+          code: 11000,
+        });
       }
-      throw new InternalServerErrorException('Something terribe happen!!!');
+      throw new InternalServerErrorException({
+        message: 'Something terrible happened!',
+        code: error.code || 'UNKNOWN',
+      });
     }
 
   }

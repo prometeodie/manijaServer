@@ -15,6 +15,7 @@ import { Roles } from 'src/utils/roles.enum';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { CategoryGame } from './utils/boardgames-categories.enum';
 import { ErrorManager } from 'src/utils/error.manager';
+import { UpdateRoulette } from './dto/update-roulette.dto';
 
 
 
@@ -31,7 +32,7 @@ export class BoardgamesController {
     @Res() res: Response,
   ) {
     try{
-      let boardgame = createBoardgameDto;
+      let boardgame = createBoardgameDto
       const id = await this.boardgamesService.create(boardgame);
       return res.status(HttpStatus.OK).json({
         message:'Boardgame has been saved',
@@ -117,6 +118,22 @@ export class BoardgamesController {
       const limit = 10; 
       const offset = (page - 1) * limit;
       const boardgames = await this.boardgamesService.findAllWithFilters(category, limit, offset, true);
+      return res.status(HttpStatus.OK).json(boardgames);
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request: ${error.message}`,
+      });
+    }
+  }
+
+  @PublicAccess()
+  @Get('roulette')
+  public async findAllAvailableToroulette(
+    @Res() res: Response
+  ) {
+    try {
+      const boardgames = await this.boardgamesService.findAllForRoulette();
       return res.status(HttpStatus.OK).json(boardgames);
     } catch (error) {
       console.error('Error:', error);
@@ -215,6 +232,26 @@ export class BoardgamesController {
       })
     }
   }
+
+  @RolesAccess(Roles.ADMIN)
+  @Patch('togglee-roulette')
+  public async updateRoulette(
+    @Body() updateRoulette: UpdateRoulette,
+    @Res() res:Response
+  ) {
+    try{
+      await this.boardgamesService.updateRoulette(updateRoulette);
+      return res.status(HttpStatus.OK).json({
+        message:'Roulette has been actualized'
+        })
+    }catch(error){
+      return res.status(HttpStatus.CONFLICT).json({
+        message:`Failed to updated Roulette ${error.message}`
+      })
+    }
+  }
+
+
 
   @RolesAccess(Roles.ADMIN)
   @Patch('manijometro/:id')

@@ -11,6 +11,9 @@ export class AboutSection {
     section:Section; 
 
     @Prop({required: true})
+    position:number; 
+
+    @Prop({required: true})
     creationDate:Date;
 
     @Prop({required: false})

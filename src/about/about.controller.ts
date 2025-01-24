@@ -13,6 +13,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { PublicAccess } from 'src/decorators/public.decorator';
+import { UpdateAboutItemsOrderDto } from './dto/organize-item.dto';
 
 
 @Controller('about')
@@ -81,8 +82,8 @@ export class AboutController {
   public async findAll( @Res() res: Response
   ) {
     try{
-      const abourSection = await this.aboutService.findAll();
-      return res.status(HttpStatus.OK).json(abourSection);
+      const aboutSection = this.aboutService.sortItemsByPosition(await this.aboutService.findAll());
+      return res.status(HttpStatus.OK).json(aboutSection);
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({
       message: `Error finding the About Sections ${error.message}`
@@ -110,7 +111,7 @@ export class AboutController {
   @PublicAccess()
   public async findAllAvailableToPublish(@Res() res: Response){
     try{
-      const aboutSection = await this.aboutService.findPublishedAboutSections();
+      const aboutSection = this.aboutService.sortItemsByPosition( await this.aboutService.findPublishedAboutSections());
       return res.status(HttpStatus.OK).json(aboutSection);
     }catch(error){
       return res.status(HttpStatus.BAD_REQUEST).json({
@@ -139,6 +140,24 @@ export class AboutController {
         })
       }
     }
+
+    @Patch('update-order')
+    @RolesAccess(Roles.ADMIN)
+    async updateOrder(
+      @Body() orderedIds: UpdateAboutItemsOrderDto[],
+      @Res() res: Response) {
+        try{
+          await this.aboutService.updateOrder(orderedIds);
+          return res.status(HttpStatus.OK).json({
+            message: 'Order updated successfully'
+            });
+        }
+        catch(error){
+          return res.status(HttpStatus.CONFLICT).json({
+            message:`Order updated failed ${error.message}`
+          })
+        }
+  }
 
   @Delete('delete/:id')
   @RolesAccess(Roles.ADMIN)

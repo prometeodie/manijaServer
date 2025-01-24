@@ -20,22 +20,27 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
   
   @Post('register')
-  @RolesAccess(Roles.MASTER)
-  async create(
-    @Body() createUserDto: CreateUserDto,
-    @Res() res:Response
-  ) {
-    try{
-      await this.authService.create(createUserDto);
-      return res.status(HttpStatus.OK).json({
-        message:'User was created',
-      })
-    }catch(error){
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: `There was an error processing the request ${error.message}`,
-      });
-    }
+@RolesAccess(Roles.MASTER)
+async create(
+  @Body() createUserDto: CreateUserDto,
+  @Res() res: Response
+) {
+  try {
+    await this.authService.create(createUserDto);
+    return res.status(HttpStatus.OK).json({
+      message: 'User was created',
+    });
+  } catch (error) {
+    const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+    const customCode = error.response?.code || 'UNKNOWN';
+    const message = error.response?.message || 'An unexpected error occurred';
+
+    return res.status(statusCode).json({
+      message,
+      code: customCode,
+    });
   }
+}
 
   @PublicAccess()
   @Post('login')
@@ -69,7 +74,7 @@ export class AuthController {
   ) {
       try{
         const findAllReponse = await this.authService.findAll();
-        return res.status(HttpStatus.OK).json({users:findAllReponse});
+        return res.status(HttpStatus.OK).json(findAllReponse);
       }catch(error){
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           message: `There was an error processing the request ${error.message}`,
@@ -134,7 +139,6 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Patch('change-password')
   async changePassword(@Req() req, @Body() changePasswordDto: ChangePasswordDto) {
-    console.log('User in controller:', req);
     const userId = req.user._id;
     const { currentPassword, newPassword } = changePasswordDto;
     await this.authService.updatePassword(userId, currentPassword, newPassword);
