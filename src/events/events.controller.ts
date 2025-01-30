@@ -81,7 +81,8 @@ export class EventsController {
     try{
       const event = await this.eventsService.findOne(id);
       const imgName = file.filename;
-      this.eventsService.resizeImg(imgName, id);
+      this.eventsService.resizeImg(imgName,'regular-size', 600, id);
+      this.eventsService.resizeImg(imgName, 'optimize', 300, id);
       event.imgName = imgName
       const {_id, ...newEvent} = event.toJSON();
       const updatedEvent = {

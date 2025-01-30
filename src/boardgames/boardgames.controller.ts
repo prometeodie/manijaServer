@@ -15,7 +15,9 @@ import { Roles } from 'src/utils/roles.enum';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { CategoryGame } from './utils/boardgames-categories.enum';
 import { ErrorManager } from 'src/utils/error.manager';
-import { UpdateRoulette } from './dto/update-roulette.dto';
+import { UpdateRouletteDto } from './dto/update-roulette.dto';
+import { CommunityRatingDto } from './dto/comunity-rating.dto';
+
 
 
 
@@ -31,19 +33,32 @@ export class BoardgamesController {
     @Body() createBoardgameDto: CreateBoardgameDto,
     @Res() res: Response,
   ) {
-    try{
-      let boardgame = createBoardgameDto
-      const id = await this.boardgamesService.create(boardgame);
+    try {
+      const existingBoardgames = await this.boardgamesService.findBoardgamesByTitle(
+        createBoardgameDto.title,
+        false,
+      );
+  
+      if (existingBoardgames.length !== 0) {
+        return res.status(HttpStatus.CONFLICT).json({
+          message: 'Boardgame already exists',
+          type: 'RESOURCE_ALREADY_EXISTS',
+        });           
+      }
+  
+      const boardgameId = await this.boardgamesService.create(createBoardgameDto);
+  
       return res.status(HttpStatus.OK).json({
-        message:'Boardgame has been saved',
-        _id:id
-      })
-    }catch(error){
+        message: 'Boardgame has been saved',
+        _id: boardgameId,
+      });
+    } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `Error uploading Boardgame ${error.message}`
+        message: `Error uploading Boardgame: ${error.message}`,
       });
     }
   }
+  
 
   @RolesAccess(Roles.ADMIN,Roles.MASTER)
   @Post('uploadImg/:id')
@@ -66,7 +81,8 @@ export class BoardgamesController {
     try{
       const boardgame = await this.boardgamesService.findOne(id);
       const imgNames = files.map(file => {return file.filename;})
-      this.boardgamesService.resizeImg(imgNames, id)
+      this.boardgamesService.resizeImg(imgNames,'regular-size', 600, id);
+      this.boardgamesService.resizeImg(imgNames, 'optimize', 300, id);
       imgNames.map(img =>{
         (img.includes('cardCover'))? boardgame.cardCoverImgName = img : boardgame.imgName.push(img);
       });
@@ -214,6 +230,28 @@ export class BoardgamesController {
     }
   }
 
+  @PublicAccess()
+  @Get('comunity-rating-uservote/:id')
+  public async comunityRatingVote(
+    @Param('id') id: string, 
+    @Body() voteId: {voteId: string},
+    @Res() res:Response
+  ) {
+    try{
+      const VoteIdValue = voteId.voteId;
+      const voteResponse = await this.boardgamesService.findUserVote( id, VoteIdValue );
+      console.log('bote response: ',voteResponse)
+      return res.status(HttpStatus.OK).json({
+        message:'user vote',
+        voteId: voteResponse
+        })
+    }catch(error){
+      return res.status(HttpStatus.CONFLICT).json({
+        message:`Failed to vote ${error.message}`
+      })
+    }
+  }
+
   @RolesAccess(Roles.ADMIN)
   @Patch('edit/:id')
   public async update(
@@ -236,7 +274,7 @@ export class BoardgamesController {
   @RolesAccess(Roles.ADMIN)
   @Patch('togglee-roulette')
   public async updateRoulette(
-    @Body() updateRoulette: UpdateRoulette,
+    @Body() updateRoulette: UpdateRouletteDto,
     @Res() res:Response
   ) {
     try{
@@ -251,7 +289,25 @@ export class BoardgamesController {
     }
   }
 
-
+  @PublicAccess()
+  @Patch('comunity-rating/:id')
+  public async comunityRating(
+    @Param('id') id: string, 
+    @Body() communityRatingDto: CommunityRatingDto,
+    @Res() res:Response
+  ) {
+    try{
+      const voteResponse = await this.boardgamesService.comunityRating(communityRatingDto,id);
+      return res.status(HttpStatus.OK).json({
+        message:'vote saved',
+        voteId: voteResponse
+        })
+    }catch(error){
+      return res.status(HttpStatus.CONFLICT).json({
+        message:`Failed to vote ${error.message}`
+      })
+    }
+  }
 
   @RolesAccess(Roles.ADMIN)
   @Patch('manijometro/:id')

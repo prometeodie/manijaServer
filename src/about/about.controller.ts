@@ -60,7 +60,8 @@ export class AboutController {
     try{
       const aboutSection = await this.aboutService.findOne(id);
       const imgName = file.filename;
-      this.aboutService.resizeImg(imgName)
+      this.aboutService.resizeImg(imgName, 'regular-size',600);
+      this.aboutService.resizeImg(imgName, 'optimize', 300);
       aboutSection.imgName = imgName
       const {_id, ...newAboutSec} = aboutSection.toJSON();
       const updateAboutSection = newAboutSec;

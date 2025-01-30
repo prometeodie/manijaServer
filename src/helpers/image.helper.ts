@@ -35,17 +35,16 @@ export const fileFilter = (req, file, callback) => {
     callback(null,true)
 }
 
-export const  imgResizing =  (filePath:string,fileName:string, size:number)=>{
-
-    let path = `${filePath}/optimize/smallS-${fileName}`;
-    let ubication = `${filePath}`
-
+export const imgResizing =  (imageDirectory:string, originalFileUbication:string, fileName:string, size:number)=>{
+    let path = `${originalFileUbication}/${imageDirectory}/${fileName}`;
+    let ubication = `${originalFileUbication}`
+    
     if(fileName.includes('cardCover')){
-        pathCreator(`${filePath}/cardCover/optimize`)
-        path = `${filePath}/cardCover/optimize/smallS-${fileName}`
-        ubication = `${filePath}/cardCover`
+        pathCreator(`${originalFileUbication}/cardCover/${imageDirectory}`)
+        path = `${originalFileUbication}/cardCover/${imageDirectory}/${fileName}`
+        ubication = `${originalFileUbication}/cardCover`
     }
-    pathCreator(`${filePath}/optimize`)
+    pathCreator(`${originalFileUbication}/${imageDirectory}`)
     return sharp(`${ubication}/${fileName}`)
         .resize(size)
         .toFile(path)            

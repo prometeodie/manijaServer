@@ -61,13 +61,14 @@ export class BlogsManijasController {
     try{
       const blog = await this.blogsManijasService.findOne(id);
       const imgName = file.filename
-      this.blogsManijasService.resizeImg(imgName, id)
+      this.blogsManijasService.resizeImg(imgName,'regular-size', 600, id);
+      this.blogsManijasService.resizeImg(imgName, 'optimize', 300, id);
       blog.imgName = imgName
       const {_id, ...newBlog} = blog.toJSON();
       const updatedBlog = {
         ...newBlog,
         itemName: id
-      };;
+      };
       this.blogsManijasService.update(id,updatedBlog)
       return res.status(HttpStatus.OK).json({
         message:'img has been saved',

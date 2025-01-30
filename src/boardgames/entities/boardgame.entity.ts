@@ -5,6 +5,7 @@ import { Section } from "src/helpers/section.enum";
 import { Replayability } from "../utils/Replayability.enum";
 import { Dificulty } from "../utils/dificulty.enum";
 import { ManijometroPoolEntity } from "../utils/manijometro-interfaces";
+import { CommunityRating } from "../utils/community-rating.interface";
 
 
 @Schema()
@@ -71,6 +72,9 @@ export class Boardgame {
 
     @Prop({required: true})
     roulette:Boolean;
+    
+    @Prop({required: false})
+    communityRating: CommunityRating[];
     
     @Prop({required: true})
     publish:Boolean;

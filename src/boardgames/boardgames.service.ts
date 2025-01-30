@@ -11,7 +11,10 @@ import { imgResizing } from 'src/helpers/image.helper';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { ManijometroPoolEntity } from './utils/manijometro-interfaces';
 import { CategoryGame } from './utils/boardgames-categories.enum';
-import { UpdateRoulette } from './dto/update-roulette.dto';
+import { UpdateRouletteDto } from './dto/update-roulette.dto';
+import { CommunityRatingDto } from './dto/comunity-rating.dto';
+import { v4 as uuidv4 } from 'uuid';
+
 
 
 
@@ -103,6 +106,13 @@ export class BoardgamesService {
     }
   }
 
+  async findUserVote( id:string, voteId:string){
+    const boardgame = await this.findOne(id);
+    console.log(voteId)
+    const filteredVote = boardgame.communityRating.find(vote => vote.voteId === voteId);
+    return filteredVote.userScore;
+  }
+
   async getVotingValues(){
     try{
       const boardgames = await this.boardgameModel.find();
@@ -125,7 +135,6 @@ export class BoardgamesService {
       }
       return boardgame;
     }catch(error){
-      console.error(error);
       throw ErrorManager.createSignatureError(error.message);
     }
   }
@@ -148,12 +157,10 @@ export class BoardgamesService {
     }
   }
 
-  async updateRoulette(updateRoulette: UpdateRoulette){
+  async updateRoulette(updateRoulette: UpdateRouletteDto){
     const {_id, roulette} = updateRoulette;
-    console.log(roulette)
     try{
       const boardgame = await this.boardgameModel.findByIdAndUpdate(_id, {roulette}, { new: true } );
-      console.log(boardgame)
       if (!boardgame) {
         throw new ErrorManager({
           type:'NOT_FOUND',
@@ -165,6 +172,51 @@ export class BoardgamesService {
     throw ErrorManager.createSignatureError(error.message);
     }
   }
+
+  async comunityRating(communityRatingDto:CommunityRatingDto, _id:string){
+   
+    try{
+      const {voteId, userScore} = communityRatingDto;
+  
+      const boardgame= await this.findOne(_id);
+      const newVoteId = uuidv4();
+      console.log(newVoteId)
+      
+      if(!boardgame.communityRating){
+      if(boardgame.communityRating.find(vote => vote.voteId === voteId)){
+        const newCommunityRating = boardgame.communityRating.filter(vote => {
+          vote.voteId !== voteId;
+        })
+      newCommunityRating.push({voteId: newVoteId, userScore});
+      await this.boardgameModel.findByIdAndUpdate(
+        _id,  
+        {
+          $push: { 
+            communityRating: { 
+              voteId: newVoteId, 
+              userScore           
+            }
+          }
+        },
+        { new: true } 
+      );
+      return newVoteId;
+    }
+  }else{
+        await this.boardgameModel.findByIdAndUpdate(_id, {
+          $push: { 
+            communityRating: { 
+              voteId: newVoteId, 
+              userScore           
+            }
+          }
+        }, { new: true } );
+      return newVoteId;
+    }
+  }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
+    }
+}
 
   async updateManijometro(id:string, manijometroPoolDto:ManijometroPoolDto ){
     try{
@@ -230,12 +282,15 @@ export class BoardgamesService {
     return boards
   }
 
-  resizeImg(itemName:string[], id:string){
+  resizeImg(itemName:string[], imageDirectory:string, size:number, id:string){
     try{
       if(itemName.length > 0){
         const path = `${this.commonPath}/${id}`
         try{
-          itemName.map((file) => imgResizing(path,file,500))
+          itemName.map((file) => {
+            console.log('file: ',file)
+            imgResizing(imageDirectory,path, file, size)
+          })
           return true;
         }catch(error){
           console.error('Something wrong happened resizing the image', error)

@@ -135,12 +135,12 @@ async deleteImage(imagePath: string): Promise<boolean> {
 }
     
   
-  async resizeImg(fileName: string, id: string){
+  async resizeImg(fileName: string, imageDirectory: string, size:number, id: string){
     try{
       if(fileName){
         const path = `${this.commonPath}/${id}`
         try{
-          await imgResizing(path,fileName,500)
+          await imgResizing(imageDirectory,path, fileName, size)
         }catch(error){
           console.error('Something wrong happened resizing the image', error)
           throw error;    
