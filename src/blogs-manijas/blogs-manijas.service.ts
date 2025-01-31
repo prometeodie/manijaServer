@@ -116,24 +116,7 @@ export class BlogsManijasService {
   }
 
     
-async deleteImage(imagePath: string): Promise<boolean> {
-  try {
-    const fs = require('fs').promises;
-    
-    await fs.rm(imagePath, { recursive: true });
-
-    return true;
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      console.warn(`El archivo o directorio no existe: ${imagePath}`);
-      return false;
-    }
-
-    console.error('Something wrong happened removing the file', error);
-    throw error;
-  }
-}
-    
+  
   
   async resizeImg(fileName: string, imageDirectory: string, size:number, id: string){
     try{
@@ -150,7 +133,36 @@ async deleteImage(imagePath: string): Promise<boolean> {
       console.error('Something wrong happened resizing the image', error)
       throw error;    
     }
-}
+  }
+
+  async getCharacterAverage(){
+    try{
+      const blogs = await this.blogsManijaModel.find();
+      const characterAverage = blogs.reduce((acc, blogs) => acc + blogs.blogContent.length, 0) / blogs.length;
+      return Math.ceil(characterAverage);
+    }catch(error){
+      console.error('Something wrong happened', error)
+      throw error;    
+    }
+  }
+
+  async deleteImage(imagePath: string): Promise<boolean> {
+    try {
+      const fs = require('fs').promises;
+      
+      await fs.rm(imagePath, { recursive: true });
+  
+      return true;
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        console.warn(`El archivo o directorio no existe: ${imagePath}`);
+        return false;
+      }
+  
+      console.error('Something wrong happened removing the file', error);
+      throw error;
+    }
+  }
   
 deleteImgCatch(fileName: string, itemName: string){
   const imgPath = `${this.commonPath}/${itemName}/${fileName}`

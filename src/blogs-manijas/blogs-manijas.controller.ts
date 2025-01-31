@@ -103,22 +103,21 @@ export class BlogsManijasController {
       });
     }
   }
-    
-    @Get(':id')
-    @PublicAccess()
-    public async findOne(
-      @Param('id') id: string,
-      @Res() res: Response
-    ) {
-    try {
-      const blog = await this.blogsManijasService.findOne(id);
-      return res.status(HttpStatus.OK).json(blog);
-    } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json({
-        message: `Error finding the Blog ${error.message}`
-      });
-    }
-  }
+
+  @Get('character-average')
+  @RolesAccess(Roles.ADMIN) 
+   public async getCharacterAverage(
+     @Res() res: Response) {
+     try {
+       const charactersAverage = await this.blogsManijasService.getCharacterAverage();
+       return res.status(HttpStatus.OK).json({charactersAverage: charactersAverage});
+     } catch (error) {
+       console.error('Error:', error);
+       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+         message: `There was an error processing the request: ${error.message}`,
+       });
+     }
+   }
 
   @Get()
   @PublicAccess()
@@ -140,6 +139,22 @@ export class BlogsManijasController {
         });
       }
     }
+
+    @Get(':id')
+    @PublicAccess()
+    public async findOne(
+      @Param('id') id: string,
+      @Res() res: Response
+    ) {
+    try {
+      const blog = await this.blogsManijasService.findOne(id);
+      return res.status(HttpStatus.OK).json(blog);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: `Error finding the Blog ${error.message}`
+      });
+    }
+  }
 
   @Patch('edit/:id')
   @RolesAccess(Roles.ADMIN)

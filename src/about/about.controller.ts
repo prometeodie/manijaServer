@@ -92,6 +92,21 @@ export class AboutController {
   }
 }
 
+@Get('character-average')
+@RolesAccess(Roles.ADMIN) 
+ public async getCharacterAverage(
+   @Res() res: Response) {
+   try {
+     const charactersAverage = await this.aboutService.getCharacterAverage();
+     return res.status(HttpStatus.OK).json({charactersAverage: charactersAverage});
+   } catch (error) {
+     console.error('Error:', error);
+     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+       message: `There was an error processing the request: ${error.message}`,
+     });
+   }
+ }
+
   @Get(':id')
   @PublicAccess()
   public async findOne(

@@ -123,6 +123,22 @@ export class BoardgamesController {
     }
   }
 
+  @Get('character-average')
+  @RolesAccess(Roles.ADMIN)
+  public async getCharacterAverage(
+    @Res() res: Response
+  ) {
+    try {
+      const charactersAverage = await this.boardgamesService.getCharacterAverage();
+      return res.status(HttpStatus.OK).json({charactersAverage: charactersAverage});
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: `There was an error processing the request: ${error.message}`,
+      });
+    }
+  }
+
   @PublicAccess()
   @Get()
   public async findAllAvailableToPublish(
@@ -240,7 +256,6 @@ export class BoardgamesController {
     try{
       const VoteIdValue = voteId.voteId;
       const voteResponse = await this.boardgamesService.findUserVote( id, VoteIdValue );
-      console.log('bote response: ',voteResponse)
       return res.status(HttpStatus.OK).json({
         message:'user vote',
         voteId: voteResponse
@@ -297,7 +312,7 @@ export class BoardgamesController {
     @Res() res:Response
   ) {
     try{
-      const voteResponse = await this.boardgamesService.comunityRating(communityRatingDto,id);
+      const voteResponse = await this.boardgamesService.communityRating(communityRatingDto,id);
       return res.status(HttpStatus.OK).json({
         message:'vote saved',
         voteId: voteResponse

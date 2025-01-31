@@ -108,7 +108,6 @@ export class BoardgamesService {
 
   async findUserVote( id:string, voteId:string){
     const boardgame = await this.findOne(id);
-    console.log(voteId)
     const filteredVote = boardgame.communityRating.find(vote => vote.voteId === voteId);
     return filteredVote.userScore;
   }
@@ -173,50 +172,35 @@ export class BoardgamesService {
     }
   }
 
-  async comunityRating(communityRatingDto:CommunityRatingDto, _id:string){
-   
-    try{
-      const {voteId, userScore} = communityRatingDto;
-  
-      const boardgame= await this.findOne(_id);
+  async communityRating(communityRatingDto: CommunityRatingDto, _id: string) {
+    try {
+      const { voteId, userScore } = communityRatingDto;
+      const boardgame = await this.findOne(_id);
       const newVoteId = uuidv4();
-      console.log(newVoteId)
+  
+      if (!boardgame.communityRating) {
+        boardgame.communityRating = [];
+      }
+  
+      const existingVoteIndex = boardgame.communityRating.findIndex(vote => vote.voteId === voteId);
       
-      if(!boardgame.communityRating){
-      if(boardgame.communityRating.find(vote => vote.voteId === voteId)){
-        const newCommunityRating = boardgame.communityRating.filter(vote => {
-          vote.voteId !== voteId;
-        })
-      newCommunityRating.push({voteId: newVoteId, userScore});
-      await this.boardgameModel.findByIdAndUpdate(
-        _id,  
-        {
-          $push: { 
-            communityRating: { 
-              voteId: newVoteId, 
-              userScore           
-            }
-          }
-        },
-        { new: true } 
-      );
+      if (existingVoteIndex !== -1) {
+        boardgame.communityRating[existingVoteIndex].userScore = userScore;
+      } else {
+        boardgame.communityRating.push({ voteId: newVoteId, userScore });
+      }
+  
+      boardgame.communityScore = boardgame.communityRating.reduce((acc, vote) => acc + vote.userScore, 0) / boardgame.communityRating.length;
+      await this.boardgameModel.findByIdAndUpdate(_id, {
+        communityRating: boardgame.communityRating,
+        communityScore: Math.ceil(boardgame.communityScore)
+      }, { new: true });
+  
       return newVoteId;
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error.message);
     }
-  }else{
-        await this.boardgameModel.findByIdAndUpdate(_id, {
-          $push: { 
-            communityRating: { 
-              voteId: newVoteId, 
-              userScore           
-            }
-          }
-        }, { new: true } );
-      return newVoteId;
-    }
-  }catch(error){
-    throw ErrorManager.createSignatureError(error.message);
-    }
-}
+  }
 
   async updateManijometro(id:string, manijometroPoolDto:ManijometroPoolDto ){
     try{
@@ -288,7 +272,6 @@ export class BoardgamesService {
         const path = `${this.commonPath}/${id}`
         try{
           itemName.map((file) => {
-            console.log('file: ',file)
             imgResizing(imageDirectory,path, file, size)
           })
           return true;
@@ -300,6 +283,17 @@ export class BoardgamesService {
     }catch(error){
       console.error('Something wrong happened resizing the image', error)
       throw error;    
+  }
+}
+
+async getCharacterAverage(){
+  try{
+    const boardgames = await this.boardgameModel.find();
+    const characterAverage = boardgames.reduce((acc, boardgame) => acc + boardgame.gameReview.length, 0) / boardgames.length;
+    return Math.ceil(characterAverage);
+  }catch(error){
+    console.error('Something wrong happened', error)
+    throw error;    
   }
 }
 

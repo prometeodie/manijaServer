@@ -58,6 +58,17 @@ export class AboutService {
     }
   }
 
+  async getCharacterAverage(){
+    try{
+      const aboutItems = await this.aboutSectionModel.find();
+      const characterAverage = aboutItems.reduce((acc, aboutItem) => acc + aboutItem.text.length, 0) / aboutItems.length;
+      return Math.ceil(characterAverage);
+    }catch(error){
+      console.error('Something wrong happened', error)
+      throw error;    
+    }
+  }
+
   async findPublishedAboutSections(): Promise<AboutSection[]>{
     try{
       return await this.aboutSectionModel.find({ publish: true }).exec();

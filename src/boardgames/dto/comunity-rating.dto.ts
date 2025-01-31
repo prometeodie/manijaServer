@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class CommunityRatingDto{
 
@@ -8,5 +8,7 @@ export class CommunityRatingDto{
     
     @IsNumber()
     @IsNotEmpty()
+    @Min(1)
+    @Max(5)
     userScore :number;
 }

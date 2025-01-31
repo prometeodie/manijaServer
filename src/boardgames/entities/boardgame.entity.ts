@@ -76,6 +76,9 @@ export class Boardgame {
     @Prop({required: false})
     communityRating: CommunityRating[];
     
+    @Prop({required: false})
+    communityScore:number;
+    
     @Prop({required: true})
     publish:Boolean;
 }
