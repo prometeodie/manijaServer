@@ -8,6 +8,8 @@ import { BlogsManijasModule } from './blogs-manijas/blogs-manijas.module';
 import { EventsModule } from './events/events.module';
 import { ContactModule } from './contact/contact.module';
 import { AboutModule } from './about/about.module';
+import { AdminSetupService } from './services/admin-setup/admin-setup.service';
+
 
 @Module({
   imports: [
@@ -20,6 +22,12 @@ import { AboutModule } from './about/about.module';
     EventsModule, 
     ContactModule],
   controllers: [],
-  providers: [],
+  providers: [AdminSetupService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private readonly adminSetupService: AdminSetupService) {}
+
+  async onModuleInit() {
+    await this.adminSetupService.createAdminIfNotExist();
+  }
+}

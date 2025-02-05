@@ -55,6 +55,10 @@ export class AuthService {
 
   }
 
+  async findOneByEmail( email: string ){
+    const user = await this.userModel.findOne({ email });
+    return user;
+  }
 
   async login( loginDto: LoginDto ):Promise<LoginResponse> {
 
