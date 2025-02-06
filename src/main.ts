@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
 
   const corsOptions: CorsOptions = {
-    origin: ['https://lmdr-backoffice.vercel.app/','https://lmdr-backoffice.vercel.app/auth/login','https://lmdr-backoffice.onrender.com'], 
+    origin: ['*'], 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], 
     allowedHeaders: ['Content-Type', 'Authorization'], 
     credentials: true,
