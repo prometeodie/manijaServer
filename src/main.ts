@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
+import * as cors from 'cors';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 async function bootstrap() {
@@ -14,7 +15,8 @@ async function bootstrap() {
     credentials: true,
   };
   
-  app.enableCors(corsOptions);
+  // app.enableCors(corsOptions);
+  app.use(cors(corsOptions));
 
   app.use('/upload', express.static('upload'));
   
