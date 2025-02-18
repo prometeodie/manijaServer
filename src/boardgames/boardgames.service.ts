@@ -272,7 +272,7 @@ export class BoardgamesService {
         const path = `${this.commonPath}/${id}`
         try{
           itemName.map((file) => {
-            imgResizing(imageDirectory,path, file, size)
+            // imgResizing(imageDirectory,path, file, size)
           })
           return true;
         }catch(error){

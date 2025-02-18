@@ -9,6 +9,7 @@ import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
 import { BlogsManija } from './entities/blogs-manija.entity';
 import { BlogsCategories } from './utils/blogs-categories.enum';
+import { S3Service } from 'src/utils/s3/s3.service';
 
 
 @Injectable()
@@ -19,6 +20,7 @@ export class BlogsManijasService {
   constructor(
     @InjectModel(BlogsManija.name) 
     private blogsManijaModel: Model<BlogsManija>,
+    private readonly s3Service: S3Service
   ) {}
 
   async create(createBlogsManijaDto: CreateBlogsManijaDto) {
@@ -88,7 +90,6 @@ export class BlogsManijasService {
     try{
 
       const blog = await this.blogsManijaModel.findByIdAndUpdate(id, updateBlog, { new: true } );
-
       if (!blog) {
         throw new ErrorManager({
           type:'NOT_FOUND',
@@ -115,15 +116,13 @@ export class BlogsManijasService {
     }
   }
 
-    
-  
   
   async resizeImg(fileName: string, imageDirectory: string, size:number, id: string){
     try{
       if(fileName){
-        const path = `${this.commonPath}/${id}`
+        const path = `${this.commonPath}/${id}`;
         try{
-          await imgResizing(imageDirectory,path, fileName, size)
+          // await imgResizing(imageDirectory,path, fileName, size)
         }catch(error){
           console.error('Something wrong happened resizing the image', error)
           throw error;    
@@ -146,30 +145,38 @@ export class BlogsManijasService {
     }
   }
 
-  async deleteImage(imagePath: string): Promise<boolean> {
-    try {
-      const fs = require('fs').promises;
-      
-      await fs.rm(imagePath, { recursive: true });
-  
-      return true;
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        console.warn(`El archivo o directorio no existe: ${imagePath}`);
-        return false;
-      }
-  
-      console.error('Something wrong happened removing the file', error);
-      throw error;
-    }
-  }
-  
-deleteImgCatch(fileName: string, itemName: string){
-  const imgPath = `${this.commonPath}/${itemName}/${fileName}`
-    setTimeout(()=>{
-      if (fs.existsSync(imgPath)) {
-      this.deleteImage(imgPath)
+  async deleteAllImages(id) {
+    const blog = await this.findOne(id);
+        if (!blog) {
+          throw new ErrorManager({
+            type:'NOT_FOUND',
+            message:'Blog does not exist'
+          })
         }
-      },5000)
-    }
- }
+        try {
+          if (blog.imgName) {
+            await this.s3Service.deleteFile(blog.imgName);
+          }
+    
+          if (blog.imgNameMobile) {
+            await this.s3Service.deleteFile(blog.imgNameMobile);
+          }
+    
+          blog.imgName = null;
+          blog.imgNameMobile = null;
+    
+          await this.update(id, blog);
+  }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
+  }
+}
+  
+// deleteImgCatch(fileName: string, itemName: string){
+//   const imgPath = `${this.commonPath}/${itemName}/${fileName}`
+//     setTimeout(()=>{
+//       if (fs.existsSync(imgPath)) {
+//       this.deleteImage(imgPath)
+//         }
+//       },5000)
+//     }
+}

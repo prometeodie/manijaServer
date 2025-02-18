@@ -35,21 +35,14 @@ export const fileFilter = (req, file, callback) => {
     callback(null,true)
 }
 
-export const imgResizing =  (imageDirectory:string, originalFileUbication:string, fileName:string, size:number)=>{
-    let path = `${originalFileUbication}/${imageDirectory}/${fileName}`;
-    let ubication = `${originalFileUbication}`
-    
-    if(fileName.includes('cardCover')){
-        pathCreator(`${originalFileUbication}/cardCover/${imageDirectory}`)
-        path = `${originalFileUbication}/cardCover/${imageDirectory}/${fileName}`
-        ubication = `${originalFileUbication}/cardCover`
-    }
-    pathCreator(`${originalFileUbication}/${imageDirectory}`)
-    return sharp(`${ubication}/${fileName}`)
-        .resize(size)
-        .toFile(path)            
-}
-
+export const imgResizing = async (file: Express.Multer.File, size: number): Promise<Buffer> => {
+    return await sharp(file.buffer)
+      .resize(size)
+      .jpeg({ quality: 85 })
+      .toBuffer();
+  };
+  
+  
 export const pathCreator = (path:string)=>{
     if (!fs.existsSync(path)) {
         fs.mkdirSync(path,{ recursive: true });

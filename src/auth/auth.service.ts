@@ -66,21 +66,17 @@ export class AuthService {
       const { email, password } = loginDto;
   
       const user = await this.userModel.findOne({ email });
-      console.log('user',user);
       if ( !user ) {
         throw new UnauthorizedException('Not valid credentials');
       }
-      console.log('paso lo del user user');
       
       if ( !bcryptjs.compareSync( password, user.password ) ) {
         throw new UnauthorizedException('Not valid credentials');
       }
-      console.log('paso lo del password');
       
       
       const { password:_, ...rest  } = user.toJSON();
       const token = this.getJwtToken({ _id: user._id, roles: user.roles, name: user.name, surname: user.surname, nickname: user.nickname })
-      console.log('paso lo del jwtoken');
   
       const userLoggedIn = {
         user: rest,
@@ -94,7 +90,6 @@ export class AuthService {
         throw new InternalServerErrorException('An unexpected error occurred');
       }
     }
-  
   }
 
 
@@ -192,8 +187,7 @@ export class AuthService {
   }
 
     getJwtToken( payload: JwtPayload ) {
-      const token =  this.jwtService.sign(payload);
-      return token;
+      return  this.jwtService.sign(payload);
     }
   }
 

@@ -114,7 +114,7 @@ async resizeImg(fileName: string, imageDirectory: string, size:number, id: strin
     if(fileName){
       const path = `${this.commonPath}/${id}`
       try{
-        await imgResizing(imageDirectory,path, fileName, size)
+        // await imgResizing(imageDirectory,path, fileName, size)
       }catch(error){
         console.error('Something wrong happened resizing the image', error)
         throw error;    

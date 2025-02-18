@@ -1,14 +1,9 @@
-import { IsEnum, IsNotEmpty, IsString } from "class-validator";
-import { Section } from "src/helpers/section.enum";
+import { IsNotEmpty, IsString } from "class-validator";
 
-
-export class UploadImgDto {
+export class UploadImgKeyDto {
 
     @IsString()
     @IsNotEmpty()
-    @IsEnum([Section.BLOGS],{
-        message:'Valid Section value Requiered'
-    })
-    section:Section
+    key:string
    
 }
