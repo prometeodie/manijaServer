@@ -18,7 +18,7 @@ export class S3Service {
     }
   
     async uploadFile(buffer: Buffer, fileName:string): Promise<string> {
-      const uploadParams: S3.PutObjectRequest = {
+      try{const uploadParams: S3.PutObjectRequest = {
         Bucket: this.bucketName,
         Key: `uploads/${Date.now()}-${fileName}`,
         Body: buffer,
@@ -28,6 +28,9 @@ export class S3Service {
       const result = await this.s3.upload(uploadParams).promise();
       
       return result.Key;
+    }catch(error){
+        throw new Error('Error uploading file from S3');
+      }
     }
 
     async getSignedUrl(fileKey: string): Promise<string> {
@@ -45,7 +48,6 @@ export class S3Service {
         Bucket: this.bucketName,
         Key: fileKey,
       };
-  
       try {
         await this.s3.deleteObject(params).promise();
       } catch (error) {

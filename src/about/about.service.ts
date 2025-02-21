@@ -1,14 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ErrorManager } from 'src/utils/error.manager';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import * as fs from 'node:fs';
 
 import { CreateAboutDto } from './dto/create-about.dto';
-import { imgResizing } from 'src/helpers/image.helper';
 import { AboutSection } from './entities/about.entity';
 import { UpdateAboutItemsOrderDto } from './dto/organize-item.dto';
 import { UpdateAboutDto } from './dto/update-about.dto';
+import { S3Service } from 'src/utils/s3/s3.service';
 
 
 @Injectable()
@@ -18,7 +17,7 @@ export class AboutService {
   
   constructor(
   @InjectModel(AboutSection.name)
-  private aboutSectionModel: Model<AboutSection>){}
+  private readonly aboutSectionModel: Model<AboutSection>, private readonly s3Service: S3Service){}
 
   async create(createAboutDto: CreateAboutDto) {
     try{  
@@ -127,49 +126,50 @@ export class AboutService {
     }
   }
 
-  
-async deleteImage(imagePath: string): Promise<boolean> {
-  try {
-    const fs = require('fs').promises;
-    
-    await fs.rm(imagePath, { recursive: true });
-
-    return true;
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      console.warn(`El archivo o directorio no existe: ${imagePath}`);
-      return false;
-    }
-
-    console.error('Something wrong happened removing the file', error);
-    throw error;
-  }
-}
-
-  async resizeImg(fileName: string, imageDirectory: string, size:number){
-    try{
-      if(fileName){
-        try{
-          // await imgResizing(imageDirectory,this.commonPath, fileName, size)
-        }catch(error){
-          console.error('Something wrong happened resizing the image', error)
-          throw error;    
-        }
+async deleteAllImages(id) {
+  const aboutItem = await this.findOne(id);
+      if (!aboutItem) {
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'About item does not exist'
+        })
       }
-    }catch(error){
-      console.error('Something wrong happened resizing the image', error)
-      throw error;    
-  }
+      try {
+        if (aboutItem.imgName) {
+          await this.s3Service.deleteFile(aboutItem.imgName);
+        }
+        
+        if (aboutItem.imgNameMobile) {
+          await this.s3Service.deleteFile(aboutItem.imgNameMobile);
+        }
+        
+        aboutItem.imgName = null;
+        aboutItem.imgNameMobile = null;
+  
+        await this.update(id, aboutItem);
+}catch(error){
+  throw ErrorManager.createSignatureError(error.message);
+}
 }
 
-deleteImgCatch(fileName: string){
-  const imgPath = `${this.commonPath}/${fileName}`
-    setTimeout(()=>{
-      if (fs.existsSync(imgPath)) {
-      this.deleteImage(imgPath)
-        }
-      },5000)
-    }
+async deleteImage(id:string, imgKey:string){
+  const aboutItem = await this.findOne(id);
+  if (!aboutItem) {
+    throw new ErrorManager({
+      type:'NOT_FOUND',
+      message:'About item does not exist'
+    })
+  }
+try{
+  if(aboutItem){
+    await this.s3Service.deleteFile(imgKey);
+    imgKey === aboutItem.imgName ? aboutItem.imgName = null : aboutItem.imgNameMobile = null;
+    await this.update(id, aboutItem);
+  }
+}catch(error){
+  throw ErrorManager.createSignatureError(error.message);
+  } 
+}
 }
   
 

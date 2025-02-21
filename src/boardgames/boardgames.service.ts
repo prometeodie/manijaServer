@@ -14,6 +14,7 @@ import { CategoryGame } from './utils/boardgames-categories.enum';
 import { UpdateRouletteDto } from './dto/update-roulette.dto';
 import { CommunityRatingDto } from './dto/comunity-rating.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { S3Service } from 'src/utils/s3/s3.service';
 
 
 
@@ -26,6 +27,7 @@ export class BoardgamesService {
   constructor(
     @InjectModel(Boardgame.name) 
     private boardgameModel: Model<Boardgame>,
+    private readonly s3Service: S3Service
   ) {}
 
   async create(createBoardgameDto: CreateBoardgameDto) {
@@ -297,39 +299,84 @@ async getCharacterAverage(){
   }
 }
 
-async deleteImage(imagePath: string): Promise<boolean> {
+
+async deleteAllImages(id: string) {
+  const boardgame = await this.findOne(id);
+  if (!boardgame) {
+    throw new ErrorManager({
+      type: 'NOT_FOUND',
+      message: 'event does not exist'
+    });
+  }
+
   try {
-    const fs = require('fs').promises;
-    
-    await fs.rm(imagePath, { recursive: true });
+    const imagesToDelete = [
+      ...boardgame.imgName,
+      ...boardgame.imgNameMobile,
+      boardgame.cardCoverImgName,
+      boardgame.cardCoverImgNameMobile
+    ].filter(Boolean);
 
-    return true;
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      console.warn(`El archivo o directorio no existe: ${imagePath}`);
-      return false;
-    }
+    await Promise.all(imagesToDelete.map(img => this.s3Service.deleteFile(img)));
 
-    console.error('Something wrong happened removing the file', error);
-    throw error;
+    boardgame.imgName = [];
+    boardgame.imgNameMobile = [];
+    boardgame.cardCoverImgName = null;
+    boardgame.cardCoverImgNameMobile = null;
+
+    await this.update(id, boardgame);
+  } catch (error) {
+    throw ErrorManager.createSignatureError(error.message);
   }
 }
 
-deleteImgCatch(id:string, files: Express.Multer.File[]){
-  files.map((file)=>{
-    let imgPath: string;
-    if(file.filename.includes('cardCover')){
-      imgPath = `${this.commonPath}/${id}/cardCover/${file.filename}`
-    }else{
-      imgPath = `${this.commonPath}/${id}/${file.filename}`
+async deleteImage(id: string, imgKey: string) {
+  const boardgame = await this.findOne(id);
+  if (!boardgame) {
+    throw new ErrorManager({
+      type: 'NOT_FOUND',
+      message: 'event does not exist'
+    });
+  }
+  try {
+    await this.s3Service.deleteFile(imgKey);
+
+    if (boardgame.imgName.includes(imgKey)) {
+      boardgame.imgName = boardgame.imgName.filter(img => img !== imgKey);
+    } else if (boardgame.imgNameMobile.includes(imgKey)) {
+      boardgame.imgNameMobile = boardgame.imgNameMobile.filter(img => img !== imgKey);
     }
-    setTimeout(()=>{
-      if (fs.existsSync(imgPath)) {
-      this.deleteImage(imgPath)
-        }
-      },5000)
+
+    await this.update(id, boardgame);
+  } catch (error) {
+    throw ErrorManager.createSignatureError(error.message);
+  }
+}
+
+async deleteCardCoverImage(id:string, imgKey:string){
+  const boardgame = await this.findOne(id);
+  if (!boardgame) {
+    throw new ErrorManager({
+      type:'NOT_FOUND',
+      message:'event does not exist'
     })
   }
+try{
+  if(boardgame){
+
+    await this.s3Service.deleteFile(imgKey);
+
+    if (boardgame.cardCoverImgName === imgKey) {
+      boardgame.cardCoverImgName = null;
+    } else if (boardgame.cardCoverImgNameMobile === imgKey) {
+      boardgame.cardCoverImgNameMobile = null;
+    }
+    await this.update(id, boardgame);
+  }
+}catch(error){
+  throw ErrorManager.createSignatureError(error.message);
+  } 
+}
 
   manijometroTotalValue(manijometroPools: ManijometroPoolEntity[]): number {
 

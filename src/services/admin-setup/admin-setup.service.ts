@@ -11,12 +11,12 @@ export class AdminSetupService {
     async createAdminIfNotExist() {
         try {
             const createAdminDto: CreateUserDto = {
-              email: "franco.d.r1992@gmail.com",
+              email: process.env.EMAIL,
               name: "franco",
               surname: "rodriguez",
               nickname: "fran",
               roles: [Roles.MASTER],
-              password: "ManijasDelRol$7",
+              password: process.env.PASSWORD,
             };
           const master = await this.authService.findOneByEmail(createAdminDto.email);
           if (!master) {

@@ -5,8 +5,7 @@ import { ErrorManager } from 'src/utils/error.manager';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ManijaEvent } from './entities/event.entity';
-import { imgResizing } from 'src/helpers/image.helper';
-import * as fs from 'node:fs';
+import { S3Service } from 'src/utils/s3/s3.service';
 
 
 @Injectable()
@@ -17,7 +16,8 @@ export class EventsService {
 
   constructor(
     @InjectModel(ManijaEvent.name)
-    private manijaEventModel: Model<ManijaEvent>){}
+    private manijaEventModel: Model<ManijaEvent>,
+    private readonly s3Service: S3Service){}
 
   async create(createEventDto: CreateEventDto) {
     try{
@@ -90,25 +90,6 @@ export class EventsService {
     }
   }
 
-  
-async deleteImage(imagePath: string): Promise<boolean> {
-  try {
-    const fs = require('fs').promises;
-    
-    await fs.rm(imagePath, { recursive: true });
-
-    return true;
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      console.warn(`El archivo o directorio no existe: ${imagePath}`);
-      return false;
-    }
-
-    console.error('Something wrong happened removing the file', error);
-    throw error;
-  }
-}
-
 async resizeImg(fileName: string, imageDirectory: string, size:number, id: string){
   try{
     if(fileName){
@@ -126,14 +107,50 @@ async resizeImg(fileName: string, imageDirectory: string, size:number, id: strin
   }
 }
 
-  deleteImgCatch(fileName: string, itemName: string){
-    const imgPath = `${this.commonPath}/${itemName}/${fileName}`
-      setTimeout(()=>{
-        if (fs.existsSync(imgPath)) {
-        this.deleteImage(imgPath)
-          }
-        },5000)
+async deleteAllImages(id) {
+  const event = await this.findOne(id);
+      if (!event) {
+        throw new ErrorManager({
+          type:'NOT_FOUND',
+          message:'event does not exist'
+        })
       }
+      try {
+        if (event.imgName) {
+          await this.s3Service.deleteFile(event.imgName);
+        }
+        
+        if (event.imgNameMobile) {
+          await this.s3Service.deleteFile(event.imgNameMobile);
+        }
+        
+        event.imgName = null;
+        event.imgNameMobile = null;
+  
+        await this.update(id, event);
+}catch(error){
+  throw ErrorManager.createSignatureError(error.message);
+}
+}
+
+async deleteImage(id:string, imgKey:string){
+  const event = await this.findOne(id);
+  if (!event) {
+    throw new ErrorManager({
+      type:'NOT_FOUND',
+      message:'event does not exist'
+    })
+  }
+try{
+  if(event){
+    await this.s3Service.deleteFile(imgKey);
+    imgKey === event.imgName ? event.imgName = null : event.imgNameMobile = null;
+    await this.update(id, event);
+  }
+}catch(error){
+  throw ErrorManager.createSignatureError(error.message);
+  } 
+}
 
   async eliminarObjetosVencidos(): Promise<void> {
     const currentDate = new Date();

@@ -1,15 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res, Query, UploadedFiles, UseInterceptors, UseGuards } from '@nestjs/common';
+import { PublicAccess } from './../decorators/public.decorator';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Res, Query, UploadedFiles, UseInterceptors, UseGuards, UploadedFile } from '@nestjs/common';
 import { BoardgamesService } from './boardgames.service';
 import { CreateBoardgameDto } from './dto/create-boardgame.dto';
 import { UpdateBoardgameDto } from './dto/update-boardgame.dto';
 import { Response } from 'express';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { fileFilter, nameImg, saveImage } from 'src/helpers/image.helper';
-import { diskStorage } from 'multer';
-import { UploadImgDto } from './dto/upload-boardImg-manija.dto';
+import { fileFilter, imgResizing } from 'src/helpers/image.helper';
+import * as multer from 'multer';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
-import { PublicAccess } from 'src/decorators/public.decorator';
 import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
@@ -17,6 +15,9 @@ import { CategoryGame } from './utils/boardgames-categories.enum';
 import { ErrorManager } from 'src/utils/error.manager';
 import { UpdateRouletteDto } from './dto/update-roulette.dto';
 import { CommunityRatingDto } from './dto/comunity-rating.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { S3Service } from 'src/utils/s3/s3.service';
+import { DeleteBoardGameImgKeyDto } from './dto/delete-boardImg-manija.dto';
 
 
 
@@ -25,7 +26,7 @@ import { CommunityRatingDto } from './dto/comunity-rating.dto';
 @Controller('boardgames')
 @UseGuards( AuthGuard, RolesGuard)
 export class BoardgamesController {
-  constructor(private readonly boardgamesService: BoardgamesService) {}
+  constructor(private readonly boardgamesService: BoardgamesService, private readonly s3Service:S3Service) {}
 
   @RolesAccess(Roles.ADMIN)
   @Post('upload')
@@ -59,49 +60,99 @@ export class BoardgamesController {
     }
   }
   
+        @Post('upload-images/:id')
+        @UseInterceptors(FilesInterceptor('files', 4, { 
+          fileFilter: fileFilter,
+          limits: {
+            fileSize: 3145728, // files max weight 3MB 
+          },
+          storage: multer.memoryStorage(),
+        }))
+        @RolesAccess(Roles.ADMIN)
+        public async uploadImgs(
+          @Res() res: Response,
+          @UploadedFiles() files: Express.Multer.File[], 
+          @Param('id') id: string
+        ) {
+          try{
+            const boardgame = await this.boardgamesService.findOne(id);
 
-  @RolesAccess(Roles.ADMIN,Roles.MASTER)
-  @Post('uploadImg/:id')
-  @UseInterceptors(FilesInterceptor('files', 4, {
-    fileFilter: fileFilter,
-    limits: {
-      fileSize: 3145728
-    },
-    storage: diskStorage({
-      destination: saveImage,
-      filename: nameImg
-    })
-  }))
-  public async uploadImg(
-    @Res() res: Response,
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body() uploadImgDto: UploadImgDto,
-    @Param('id') id: string, 
-  ){
-    try{
-      const boardgame = await this.boardgamesService.findOne(id);
-      const imgNames = files.map(file => {return file.filename;})
-      this.boardgamesService.resizeImg(imgNames,'regular-size', 600, id);
-      this.boardgamesService.resizeImg(imgNames, 'optimize', 300, id);
-      imgNames.map(img =>{
-        (img.includes('cardCover'))? boardgame.cardCoverImgName = img : boardgame.imgName.push(img);
-      });
-      const {_id, ...newBoard} = boardgame.toJSON();
-      const updatedBoard = {
-        ...newBoard,
-        itemName: id
-      };
-      this.boardgamesService.update(id,updatedBoard)
-      return res.status(HttpStatus.OK).json({
-        message:'img has been saved',
-      })
-    }catch(error){
-      this.boardgamesService.deleteImgCatch(id, files)
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: `There was an error processing the request ${error.message}`,
-      });
-    }
-  }
+            const uploadResults = await Promise.all(
+              files.map(async (file) => {
+                const originalName = file.originalname.replace(/\s+/g, '_');
+            
+                const [img800, img600] = await Promise.all([
+                  imgResizing(file, 800),
+                  imgResizing(file, 600),
+                ]);
+            
+                const [key, keyMobile] = await Promise.all([
+                  this.s3Service.uploadFile(img800, originalName),
+                  this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                ]);
+            
+                return { key, keyMobile };
+              })
+            );
+              uploadResults.forEach(keys =>{
+                boardgame.imgName.push(keys.key);
+                boardgame.imgNameMobile.push(keys.keyMobile);
+              })
+           await this.boardgamesService.update(id, boardgame);
+
+            return res.status(HttpStatus.OK).json({
+              message:'img has been saved',
+              })
+          }catch(error){
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+              message: `There was an error processing the request ${error.message}`,
+            });
+          }
+        }
+
+        @Post('upload-cardcover-image/:id')
+              @UseInterceptors(FileInterceptor('file', {
+                fileFilter: fileFilter,
+                limits: {
+                  fileSize: 3145728
+                },
+                storage: multer.memoryStorage(),
+              }))
+              // @RolesAccess(Roles.ADMIN)
+              @PublicAccess()
+              public async uploadImg(
+                @Res() res: Response,
+                @UploadedFile() file: Express.Multer.File,
+                @Param('id') id: string, 
+              ){
+                try{
+                  const boardgame = await this.boardgamesService.findOne(id);
+                  const originalName = file.originalname.replace(/\s+/g, '_');
+            
+                  const [img800, img600] = await Promise.all([
+                    imgResizing(file, 800),
+                    imgResizing(file, 600),
+                  ]);
+                
+                  const [key, keyMobile] = await Promise.all([
+                    this.s3Service.uploadFile(img800, originalName),
+                    this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                  ]);
+        
+                  boardgame.cardCoverImgName = key;
+                  boardgame.cardCoverImgNameMobile = keyMobile;
+                  await this.boardgamesService.update(id, boardgame);
+                  return res.status(HttpStatus.OK).json({
+                    message:'img has been saved',
+                    })
+                }catch(error){
+        
+                  return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                    message: `There was an error processing the request ${error.message}`,
+                  });
+                }
+              }
+
 
   @Get('admin')
   @RolesAccess(Roles.ADMIN)
@@ -361,15 +412,54 @@ export class BoardgamesController {
     }
   }
 
-  @RolesAccess(Roles.ADMIN)
-  @Delete('delete/img/:path(*)')
-  public async removeImg(@Param('path') path: string) {
-    try {
-      await this.boardgamesService.deleteImage(path);
-      return { success: true, message: 'Image deleted successfully.' };
-    } catch (error) {
-      return { success: false, message: 'Failed to delete image.', error: error.message };
-    }
-  }
+   @Delete('delete-all-images/:id')
+   @RolesAccess(Roles.ADMIN)
+       async deleteAllImages(@Param('id') id: string, @Res() res: Response) {
+         try{
+           await this.boardgamesService.deleteAllImages(id);
+           return res.status(HttpStatus.OK).json({
+             message: 'Images deleted successfully',
+           });
+         } catch (error) {
+           return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+             message: 'Error deleting images',
+           });
+         }
+       }
+       
+       @Delete('delete-image/:id')
+       @RolesAccess(Roles.ADMIN)
+       async deleteImage(
+         @Param('id') id: string,
+         @Body() imgKey: DeleteBoardGameImgKeyDto, 
+         @Res() res: Response) {
+         try{
+           await this.boardgamesService.deleteImage(id,imgKey.key);
+           return res.status(HttpStatus.OK).json({
+             message: 'Image deleted successfully',
+           });
+         } catch (error) {
+           return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+             message: 'Error deleting images',
+           });
+         }
+       }
 
+       @Delete('delete-cardcover-image/:id')
+      @PublicAccess()
+       async deleteCardCoverImage(
+         @Param('id') id: string,
+         @Body() imgKey: DeleteBoardGameImgKeyDto, 
+         @Res() res: Response) {
+         try{
+           await this.boardgamesService.deleteCardCoverImage(id,imgKey.key);
+           return res.status(HttpStatus.OK).json({
+             message: 'Image deleted successfully',
+           });
+         } catch (error) {
+           return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+             message: 'Error deleting images',
+           });
+         }
+       }
 }

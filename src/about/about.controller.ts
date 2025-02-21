@@ -1,25 +1,26 @@
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, UploadedFile, HttpStatus, UseGuards} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Res, UploadedFile, HttpStatus, UseGuards, Query} from '@nestjs/common';
 import { Response } from 'express';
 import { AboutService } from './about.service';
 import { CreateAboutDto } from './dto/create-about.dto';
 import { UpdateAboutDto } from './dto/update-about.dto';
-import { fileFilter, nameImg } from 'src/helpers/image.helper';
-import { diskStorage } from 'multer';
+import { fileFilter, imgResizing } from 'src/helpers/image.helper';
+import * as multer from 'multer';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { aboutSaveImage } from './helper/saveImg.helper';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { PublicAccess } from 'src/decorators/public.decorator';
 import { UpdateAboutItemsOrderDto } from './dto/organize-item.dto';
+import { DeleteAboutItemImgKeyDto } from './dto/delete-about-item-Img-manija.dto';
+import { S3Service } from 'src/utils/s3/s3.service';
 
 
 @Controller('about')
 @UseGuards(AuthGuard, RolesGuard)
 export class AboutController {
-  constructor(private readonly aboutService: AboutService) {}
+  constructor(private readonly aboutService: AboutService, private readonly s3Service: S3Service) {}
 
   @Post('upload')
   @RolesAccess(Roles.ADMIN)
@@ -40,42 +41,46 @@ export class AboutController {
       }
   }
 
-  @Post('uploadImg/:id')
-  @UseInterceptors(FileInterceptor('file', {
-    fileFilter: fileFilter,
-    limits: {
-      fileSize: 3145728
-    },
-    storage: diskStorage({
-      destination: aboutSaveImage,
-      filename: nameImg
-    })
-  }))
-  @RolesAccess(Roles.ADMIN)
-  public async uploadImg(
-    @Res() res: Response,
-    @UploadedFile() file: Express.Multer.File,
-    @Param('id') id: string, 
-  ){
-    try{
-      const aboutSection = await this.aboutService.findOne(id);
-      const imgName = file.filename;
-      this.aboutService.resizeImg(imgName, 'regular-size',600);
-      this.aboutService.resizeImg(imgName, 'optimize', 300);
-      aboutSection.imgName = imgName
-      const {_id, ...newAboutSec} = aboutSection.toJSON();
-      const updateAboutSection = newAboutSec;
-      this.aboutService.update(id,updateAboutSection)
-      return res.status(HttpStatus.OK).json({
-        message:'img has been saved',
-      })
-    }catch(error){
-      this.aboutService.deleteImgCatch(file.filename)
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        message: `There was an error processing the request ${error.message}`,
-      });
+  
+    @Post('upload-image/:id')
+    @UseInterceptors(FileInterceptor('file', {
+      fileFilter: fileFilter,
+      limits: {
+        fileSize: 3145728
+      },
+      storage: multer.memoryStorage(),
+    }))
+    @RolesAccess(Roles.ADMIN)
+    public async uploadImg(
+      @Res() res: Response,
+      @UploadedFile() file: Express.Multer.File,
+      @Param('id') id: string, 
+    ){
+      try{
+        const aboutItem = await this.aboutService.findOne(id);
+        const originalName = file.originalname.replace(/\s+/g, '_');
+  
+        const [img800, img600] = await Promise.all([
+          imgResizing(file, 800),
+          imgResizing(file, 600),
+        ]);
+      
+        const [key, keyMobile] = await Promise.all([
+          this.s3Service.uploadFile(img800, originalName),
+          this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+        ]);
+        aboutItem.imgName = key;
+        aboutItem.imgNameMobile = keyMobile;
+        await this.aboutService.update(id, aboutItem);
+        return res.status(HttpStatus.OK).json({
+          message:'img has been saved',
+          })
+      }catch(error){
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: `There was an error processing the request ${error.message}`,
+        });
+      }
     }
-  }
 
 
   @Get('admin')
@@ -107,6 +112,27 @@ export class AboutController {
    }
  }
 
+ @Get('img-url')
+    @PublicAccess()
+     public async getSignedUrl(
+      @Query('key') key: string,
+       @Res() res: Response) {
+       try {
+        if (!key) {
+          return res.status(HttpStatus.BAD_REQUEST).json({
+            message: 'Missing query parameter: key',
+          });
+        }
+         const signedUrl = await this.s3Service.getSignedUrl(key);
+         return res.status(HttpStatus.OK).json({signedUrl});
+       } catch (error) {
+         console.error('Error:', error);
+         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+           message: `There was an error processing the request: ${error.message}`,
+         });
+       }
+     }
+
   @Get(':id')
   @PublicAccess()
   public async findOne(
@@ -122,6 +148,8 @@ export class AboutController {
       }); 
     }
   }
+
+   
 
   @Get()
   @PublicAccess()
@@ -192,14 +220,36 @@ export class AboutController {
       })      
   }}
 
-  @Delete('delete/img/:path(*)')
-  @RolesAccess(Roles.ADMIN)
-      public async removeImg(@Param('path') path: string) {
-        try {
-          await this.aboutService.deleteImage(path);
-          return { success: true, message: 'Image deleted successfully.' };
-        } catch (error) {
-          return { success: false, message:`Failed to delete the image ${error.message}` };
-        }
+   @Delete('delete-all-images/:id')
+    @RolesAccess(Roles.ADMIN)
+    async deleteAllImages(@Param('id') id: string, @Res() res: Response) {
+      try{
+        await this.aboutService.deleteAllImages(id);
+        return res.status(HttpStatus.OK).json({
+          message: 'Images deleted successfully',
+        });
+      } catch (error) {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: 'Error deleting images',
+        });
       }
+    }
+    
+    @Delete('delete-image/:id')
+    @RolesAccess(Roles.ADMIN)
+    async deleteImage(
+      @Param('id') id: string,
+      @Body() imgKey: DeleteAboutItemImgKeyDto, 
+      @Res() res: Response) {
+      try{
+        await this.aboutService.deleteImage(id,imgKey.key);
+        return res.status(HttpStatus.OK).json({
+          message: 'Image deleted successfully',
+        });
+      } catch (error) {
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          message: 'Error deleting images',
+        });
+      }
+    }
 }

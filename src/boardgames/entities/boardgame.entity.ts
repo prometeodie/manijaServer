@@ -65,7 +65,13 @@ export class Boardgame {
     cardCoverImgName:string;
 
     @Prop({required: false})
+    cardCoverImgNameMobile:string;
+
+    @Prop({required: false})
     imgName:string[];
+
+    @Prop({required: false})
+    imgNameMobile:string[];
 
     @Prop({required: true})
     creationDate:Date;

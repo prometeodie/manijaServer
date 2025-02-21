@@ -19,6 +19,9 @@ export class AboutSection {
     @Prop({required: false})
     imgName:string;
 
+    @Prop({required: false})
+    imgNameMobile:string;
+
     @Prop({required: true})
     publish:boolean;
 

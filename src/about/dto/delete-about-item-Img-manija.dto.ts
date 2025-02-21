@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from "class-validator";
 
-export class UploadImgKeyDto {
+export class DeleteAboutItemImgKeyDto {
 
     @IsString()
     @IsNotEmpty()

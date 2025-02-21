@@ -49,9 +49,7 @@ async create(
     @Res() res: Response,
   ) {
     try {
-      console.log('logDTO',loginDto);
       const loginReponse = await this.authService.login(loginDto);
-      console.log('logREsponse',loginReponse);
       return res
         .status(HttpStatus.OK)
         .json({ message: 'Logged in successfully', user: loginReponse.user, token: loginReponse.token });

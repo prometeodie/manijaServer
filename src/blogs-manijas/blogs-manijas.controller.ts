@@ -6,7 +6,7 @@ import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileFilter, imgResizing } from 'src/helpers/image.helper';
 import { Response } from 'express';
-import { UploadImgKeyDto } from './dto/upload-blogImg-manija.dto';
+
 import { RolesGuard } from 'src/guards/roles.guard';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesAccess } from 'src/decorators/roles.decorator';
@@ -15,6 +15,7 @@ import { PublicAccess } from 'src/decorators/public.decorator';
 import { BlogsCategories } from './utils/blogs-categories.enum';
 import * as multer from 'multer';
 import { S3Service } from 'src/utils/s3/s3.service';
+import { DeleteImgKeyDto } from './dto/delete-blogImg-manija.dto';
 
 
 @Controller('blogs')
@@ -41,7 +42,7 @@ export class BlogsManijasController {
       }
   }
 
-  @Post('uploadImg/:id')
+  @Post('upload-image/:id')
   @UseInterceptors(FileInterceptor('file', {
     fileFilter: fileFilter,
     limits: {
@@ -49,15 +50,15 @@ export class BlogsManijasController {
     },
     storage: multer.memoryStorage(),
   }))
-  // @RolesAccess(Roles.ADMIN)
-  @PublicAccess()
+  @RolesAccess(Roles.ADMIN)
   public async uploadImg(
     @Res() res: Response,
     @UploadedFile() file: Express.Multer.File,
     @Param('id') id: string, 
   ){
+ 
     try{
-
+      const blog = await this.blogsManijasService.findOne(id);
       const originalName = file.originalname.replace(/\s+/g, '_');
 
       const [img800, img600] = await Promise.all([
@@ -69,19 +70,14 @@ export class BlogsManijasController {
         this.s3Service.uploadFile(img800, originalName),
         this.s3Service.uploadFile(img600, `mobile-${originalName}`),
       ]);
-      console.log(id)
-      const blog = await this.blogsManijasService.findOne(id);
       blog.imgName = key;
       blog.imgNameMobile = keyMobile;
-     const test = await this.blogsManijasService.update(id, blog);
-      console.log('test: ',test)
+      await this.blogsManijasService.update(id, blog);
       return res.status(HttpStatus.OK).json({
         message:'img has been saved',
         })
     }catch(error){
-      const imgName = file.filename;
-      // const itemName =  id;
-      // this.blogsManijasService.deleteImgCatch(imgName,itemName)
+
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: `There was an error processing the request ${error.message}`,
       });
@@ -127,10 +123,14 @@ export class BlogsManijasController {
   @Get('img-url')
   @PublicAccess()
    public async getSignedUrl(
-    @Body() imgKey: UploadImgKeyDto,
+    @Query('key') key: string,
      @Res() res: Response) {
      try {
-      const { key }= imgKey;
+      if (!key) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'Missing query parameter: key',
+        });
+      }
        const signedUrl = await this.s3Service.getSignedUrl(key);
        return res.status(HttpStatus.OK).json({signedUrl});
      } catch (error) {
@@ -214,25 +214,31 @@ export class BlogsManijasController {
       }
   }
 
-  @Delete('delete/img/:path(*)')
+  @Delete('delete-all-images/:id')
   @RolesAccess(Roles.ADMIN)
-  public async removeImg(@Param('path') path: string) {
-    try {
-      // await this.blogsManijasService.deleteImage(path);
-      return { success: true, message: 'Image deleted successfully.' };
-    } catch (error) {
-      return { success: false, message: 'Failed to delete image.', error: error.message };
-    }
-  }
-  // TODO:hacer para eliminar una imgen  un controller, aplicar borrar imagenes en el catch de subir images si no se peudo actualizar el elemento con su key, completar en todo el resto de controller y borrar lo q no se necesita
-
-  @Delete('deleteAllImage/:id')
-  @PublicAccess()
-  async deleteImage(@Param('id') id: string, @Res() res: Response) {
+  async deleteAllImages(@Param('id') id: string, @Res() res: Response) {
     try{
       await this.blogsManijasService.deleteAllImages(id);
       return res.status(HttpStatus.OK).json({
         message: 'Images deleted successfully',
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Error deleting images',
+      });
+    }
+  }
+  
+  @Delete('delete-image/:id')
+  @RolesAccess(Roles.ADMIN)
+  async deleteImage(
+    @Param('id') id: string,
+    @Body() imgKey: DeleteImgKeyDto, 
+    @Res() res: Response) {
+    try{
+      await this.blogsManijasService.deleteImage(id,imgKey.key);
+      return res.status(HttpStatus.OK).json({
+        message: 'Image deleted successfully',
       });
     } catch (error) {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({

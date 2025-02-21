@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ErrorManager } from 'src/utils/error.manager';
-import { imgResizing  } from 'src/helpers/image.helper';
-import * as fs from 'node:fs';
 
 import { UpdateBlogsManijaDto } from './dto/update-blogs-manija.dto';
 import { CreateBlogsManijaDto } from './dto/create-blogs-manija.dto';
@@ -116,23 +114,6 @@ export class BlogsManijasService {
     }
   }
 
-  
-  async resizeImg(fileName: string, imageDirectory: string, size:number, id: string){
-    try{
-      if(fileName){
-        const path = `${this.commonPath}/${id}`;
-        try{
-          // await imgResizing(imageDirectory,path, fileName, size)
-        }catch(error){
-          console.error('Something wrong happened resizing the image', error)
-          throw error;    
-        }
-      }
-    }catch(error){
-      console.error('Something wrong happened resizing the image', error)
-      throw error;    
-    }
-  }
 
   async getCharacterAverage(){
     try{
@@ -170,13 +151,18 @@ export class BlogsManijasService {
     throw ErrorManager.createSignatureError(error.message);
   }
 }
+
+async deleteImage(id:string, imgKey:string){
+  try{
+    const blog = await this.findOne(id);
+    if(blog){
+      await this.s3Service.deleteFile(imgKey);
+      imgKey === blog.imgName ? blog.imgName = null : blog.imgNameMobile = null;
+      await this.update(id, blog);
+    }
+  }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
+  } 
+}
   
-// deleteImgCatch(fileName: string, itemName: string){
-//   const imgPath = `${this.commonPath}/${itemName}/${fileName}`
-//     setTimeout(()=>{
-//       if (fs.existsSync(imgPath)) {
-//       this.deleteImage(imgPath)
-//         }
-//       },5000)
-//     }
 }
