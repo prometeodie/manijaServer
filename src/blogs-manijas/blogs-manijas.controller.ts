@@ -15,7 +15,7 @@ import { PublicAccess } from 'src/decorators/public.decorator';
 import { BlogsCategories } from './utils/blogs-categories.enum';
 import * as multer from 'multer';
 import { S3Service } from 'src/utils/s3/s3.service';
-import { DeleteImgKeyDto } from './dto/delete-blogImg-manija.dto';
+
 
 
 @Controller('blogs')
@@ -60,6 +60,7 @@ export class BlogsManijasController {
     try{
       const blog = await this.blogsManijasService.findOne(id);
       const originalName = file.originalname.replace(/\s+/g, '_');
+      const newName = `${Date.now()}-${originalName}`;
 
       const [img800, img600] = await Promise.all([
         imgResizing(file, 800),
@@ -67,17 +68,16 @@ export class BlogsManijasController {
       ]);
     
       const [key, keyMobile] = await Promise.all([
-        this.s3Service.uploadFile(img800, originalName),
-        this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                  this.s3Service.uploadFile(img800, newName),
+                  this.s3Service.uploadFile(img600,`mobile-${newName}`),
       ]);
       blog.imgName = key;
-      blog.imgNameMobile = keyMobile;
+      blog.imgMobileName = keyMobile;
       await this.blogsManijasService.update(id, blog);
       return res.status(HttpStatus.OK).json({
         message:'img has been saved',
         })
     }catch(error){
-
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: `There was an error processing the request ${error.message}`,
       });
@@ -233,10 +233,10 @@ export class BlogsManijasController {
   @RolesAccess(Roles.ADMIN)
   async deleteImage(
     @Param('id') id: string,
-    @Body() imgKey: DeleteImgKeyDto, 
+    @Query('imgKey') imgKey: string, 
     @Res() res: Response) {
     try{
-      await this.blogsManijasService.deleteImage(id,imgKey.key);
+      await this.blogsManijasService.deleteImage(id);
       return res.status(HttpStatus.OK).json({
         message: 'Image deleted successfully',
       });

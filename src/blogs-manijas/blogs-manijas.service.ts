@@ -102,6 +102,7 @@ export class BlogsManijasService {
 
   async remove(id: string):Promise<void> {
     try{
+      this.deleteAllImages(id);
       const blog = await this.blogsManijaModel.findByIdAndDelete(id)
       if ( !blog ){
         throw new ErrorManager({
@@ -135,29 +136,31 @@ export class BlogsManijasService {
           })
         }
         try {
-          if (blog.imgName) {
-            await this.s3Service.deleteFile(blog.imgName);
-          }
-    
-          if (blog.imgNameMobile) {
-            await this.s3Service.deleteFile(blog.imgNameMobile);
-          }
+
+          await Promise.all([
+            await this.s3Service.deleteFile(blog.imgName),
+            await this.s3Service.deleteFile(blog.imgMobileName)
+          ]);
     
           blog.imgName = null;
-          blog.imgNameMobile = null;
+          blog.imgMobileName = null;
     
-          await this.update(id, blog);
   }catch(error){
     throw ErrorManager.createSignatureError(error.message);
   }
 }
 
-async deleteImage(id:string, imgKey:string){
+async deleteImage(id:string){
   try{
     const blog = await this.findOne(id);
     if(blog){
-      await this.s3Service.deleteFile(imgKey);
-      imgKey === blog.imgName ? blog.imgName = null : blog.imgNameMobile = null;
+      await Promise.all([
+        await this.s3Service.deleteFile(blog.imgName),
+        await this.s3Service.deleteFile(blog.imgMobileName)
+      ]);
+      blog.imgName = null;
+      blog.imgMobileName = null;
+    
       await this.update(id, blog);
     }
   }catch(error){

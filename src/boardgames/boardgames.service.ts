@@ -7,7 +7,7 @@ import { Model, Types } from 'mongoose';
 import { ErrorManager } from 'src/utils/error.manager';
 import * as fs from 'node:fs';
 
-import { imgResizing } from 'src/helpers/image.helper';
+import { extractFileName, imgResizing } from 'src/helpers/image.helper';
 import { ManijometroPoolDto } from './dto/manijometro-pool.dto';
 import { ManijometroPoolEntity } from './utils/manijometro-interfaces';
 import { CategoryGame } from './utils/boardgames-categories.enum';
@@ -247,6 +247,7 @@ export class BoardgamesService {
   async remove(id: string) {
 
     try{
+      this.deleteAllImages(id);
       const boardgame = await this.boardgameModel.findByIdAndDelete(id)
       if ( !boardgame ){
         throw new ErrorManager({
@@ -268,26 +269,6 @@ export class BoardgamesService {
     return boards
   }
 
-  resizeImg(itemName:string[], imageDirectory:string, size:number, id:string){
-    try{
-      if(itemName.length > 0){
-        const path = `${this.commonPath}/${id}`
-        try{
-          itemName.map((file) => {
-            // imgResizing(imageDirectory,path, file, size)
-          })
-          return true;
-        }catch(error){
-          console.error('Something wrong happened resizing the image', error)
-          throw error;    
-        }
-      }
-    }catch(error){
-      console.error('Something wrong happened resizing the image', error)
-      throw error;    
-  }
-}
-
 async getCharacterAverage(){
   try{
     const boardgames = await this.boardgameModel.find();
@@ -299,24 +280,21 @@ async getCharacterAverage(){
   }
 }
 
-
 async deleteAllImages(id: string) {
-  const boardgame = await this.findOne(id);
-  if (!boardgame) {
-    throw new ErrorManager({
-      type: 'NOT_FOUND',
-      message: 'event does not exist'
-    });
-  }
-
   try {
+    const boardgame = await this.findOne(id);
+    if (!boardgame) {
+      throw new ErrorManager({
+        type: 'NOT_FOUND',
+        message: 'event does not exist'
+      });
+    }
     const imagesToDelete = [
       ...boardgame.imgName,
       ...boardgame.imgNameMobile,
       boardgame.cardCoverImgName,
       boardgame.cardCoverImgNameMobile
     ].filter(Boolean);
-
     await Promise.all(imagesToDelete.map(img => this.s3Service.deleteFile(img)));
 
     boardgame.imgName = [];
@@ -324,7 +302,6 @@ async deleteAllImages(id: string) {
     boardgame.cardCoverImgName = null;
     boardgame.cardCoverImgNameMobile = null;
 
-    await this.update(id, boardgame);
   } catch (error) {
     throw ErrorManager.createSignatureError(error.message);
   }
@@ -335,20 +312,26 @@ async deleteImage(id: string, imgKey: string) {
   if (!boardgame) {
     throw new ErrorManager({
       type: 'NOT_FOUND',
-      message: 'event does not exist'
+      message: 'Board Game does not exist'
     });
   }
   try {
-    await this.s3Service.deleteFile(imgKey);
-
+    const cleanImgName = extractFileName(imgKey);
+    const regularImgKey = boardgame.imgName.find(img => img.includes(cleanImgName));
+    const mobileImgKey = boardgame.imgNameMobile.find(img => img.includes(cleanImgName));
     if (boardgame.imgName.includes(imgKey)) {
       boardgame.imgName = boardgame.imgName.filter(img => img !== imgKey);
-    } else if (boardgame.imgNameMobile.includes(imgKey)) {
-      boardgame.imgNameMobile = boardgame.imgNameMobile.filter(img => img !== imgKey);
     }
-
-    await this.update(id, boardgame);
-  } catch (error) {
+    if (mobileImgKey && boardgame.imgNameMobile.includes(mobileImgKey)) {
+      await Promise.all([
+        await this.s3Service.deleteFile(regularImgKey),
+        await this.s3Service.deleteFile(mobileImgKey)
+      ]);
+    }
+      boardgame.imgName = boardgame.imgName.filter(img => img !== imgKey);
+      boardgame.imgNameMobile = boardgame.imgNameMobile.filter(img => img !== mobileImgKey);
+      await this.update(id, boardgame);
+    }catch (error) {
     throw ErrorManager.createSignatureError(error.message);
   }
 }

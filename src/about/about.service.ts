@@ -114,6 +114,7 @@ export class AboutService {
 
   async remove(id: string) {
     try{
+      this.deleteAllImages(id);
       const aboutSection = await this.aboutSectionModel.findByIdAndDelete(id)
       if ( !aboutSection ){
         throw new ErrorManager({
@@ -126,48 +127,44 @@ export class AboutService {
     }
   }
 
-async deleteAllImages(id) {
-  const aboutItem = await this.findOne(id);
-      if (!aboutItem) {
-        throw new ErrorManager({
-          type:'NOT_FOUND',
-          message:'About item does not exist'
-        })
-      }
-      try {
-        if (aboutItem.imgName) {
-          await this.s3Service.deleteFile(aboutItem.imgName);
+  async deleteAllImages(id) {
+    const aboutItem = await this.findOne(id);
+        if (!aboutItem) {
+          throw new ErrorManager({
+            type:'NOT_FOUND',
+            message:'aboutitem does not exist'
+          })
         }
-        
-        if (aboutItem.imgNameMobile) {
-          await this.s3Service.deleteFile(aboutItem.imgNameMobile);
-        }
-        
-        aboutItem.imgName = null;
-        aboutItem.imgNameMobile = null;
-  
-        await this.update(id, aboutItem);
-}catch(error){
-  throw ErrorManager.createSignatureError(error.message);
-}
-}
+        try {
+          
+          await Promise.all([
+            await this.s3Service.deleteFile(aboutItem.imgName),
+            await this.s3Service.deleteFile(aboutItem.imgMobileName)
+          ]);
+          
+          aboutItem.imgName = null;
+          aboutItem.imgMobileName = null;
+    
+  }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
+  }
+  }
 
-async deleteImage(id:string, imgKey:string){
-  const aboutItem = await this.findOne(id);
-  if (!aboutItem) {
-    throw new ErrorManager({
-      type:'NOT_FOUND',
-      message:'About item does not exist'
-    })
-  }
-try{
-  if(aboutItem){
-    await this.s3Service.deleteFile(imgKey);
-    imgKey === aboutItem.imgName ? aboutItem.imgName = null : aboutItem.imgNameMobile = null;
-    await this.update(id, aboutItem);
-  }
-}catch(error){
-  throw ErrorManager.createSignatureError(error.message);
+async deleteImage(id:string){
+  try{
+    const aboutItem = await this.findOne(id);
+    if(aboutItem){
+      await Promise.all([
+        await this.s3Service.deleteFile(aboutItem.imgName),
+        await this.s3Service.deleteFile(aboutItem.imgMobileName)
+      ]);
+      aboutItem.imgName = null;
+      aboutItem.imgMobileName = null;
+    
+      await this.update(id, aboutItem);
+    }
+  }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
   } 
 }
 }

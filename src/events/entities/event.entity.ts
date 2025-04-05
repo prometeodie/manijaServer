@@ -27,7 +27,7 @@ export class ManijaEvent {
     imgName: string;
 
     @Prop({required: false})
-    imgNameMobile:string;
+    imgMobileName:string;
 
     @Prop({required: true})
     eventColor: string;

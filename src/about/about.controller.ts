@@ -13,7 +13,6 @@ import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { PublicAccess } from 'src/decorators/public.decorator';
 import { UpdateAboutItemsOrderDto } from './dto/organize-item.dto';
-import { DeleteAboutItemImgKeyDto } from './dto/delete-about-item-Img-manija.dto';
 import { S3Service } from 'src/utils/s3/s3.service';
 
 
@@ -59,6 +58,7 @@ export class AboutController {
       try{
         const aboutItem = await this.aboutService.findOne(id);
         const originalName = file.originalname.replace(/\s+/g, '_');
+        const newName = `${Date.now()}-${originalName}`;
   
         const [img800, img600] = await Promise.all([
           imgResizing(file, 800),
@@ -66,11 +66,11 @@ export class AboutController {
         ]);
       
         const [key, keyMobile] = await Promise.all([
-          this.s3Service.uploadFile(img800, originalName),
-          this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                  this.s3Service.uploadFile(img800, `${newName}`),
+                  this.s3Service.uploadFile(img600, `mobile-${newName}`),
         ]);
         aboutItem.imgName = key;
-        aboutItem.imgNameMobile = keyMobile;
+        aboutItem.imgMobileName = keyMobile;
         await this.aboutService.update(id, aboutItem);
         return res.status(HttpStatus.OK).json({
           message:'img has been saved',
@@ -239,10 +239,10 @@ export class AboutController {
     @RolesAccess(Roles.ADMIN)
     async deleteImage(
       @Param('id') id: string,
-      @Body() imgKey: DeleteAboutItemImgKeyDto, 
+      @Query('imgKey') imgKey: string, 
       @Res() res: Response) {
       try{
-        await this.aboutService.deleteImage(id,imgKey.key);
+        await this.aboutService.deleteImage(id);
         return res.status(HttpStatus.OK).json({
           message: 'Image deleted successfully',
         });

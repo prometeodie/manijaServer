@@ -78,6 +78,7 @@ export class EventsService {
 
   async remove(id: string,) {
     try{
+      this.deleteAllImages(id);
       const event = await this.manijaEventModel.findByIdAndDelete(id)
       if ( !event ){
         throw new ErrorManager({
@@ -90,23 +91,6 @@ export class EventsService {
     }
   }
 
-async resizeImg(fileName: string, imageDirectory: string, size:number, id: string){
-  try{
-    if(fileName){
-      const path = `${this.commonPath}/${id}`
-      try{
-        // await imgResizing(imageDirectory,path, fileName, size)
-      }catch(error){
-        console.error('Something wrong happened resizing the image', error)
-        throw error;    
-      }
-    }
-  }catch(error){
-    console.error('Something wrong happened resizing the image', error)
-    throw error;    
-  }
-}
-
 async deleteAllImages(id) {
   const event = await this.findOne(id);
       if (!event) {
@@ -116,39 +100,41 @@ async deleteAllImages(id) {
         })
       }
       try {
+        const deletePromises = [];
+
         if (event.imgName) {
-          await this.s3Service.deleteFile(event.imgName);
+          deletePromises.push(this.s3Service.deleteFile(event.imgName));
+          event.imgName = null;
         }
-        
-        if (event.imgNameMobile) {
-          await this.s3Service.deleteFile(event.imgNameMobile);
+      
+        if (event.imgMobileName) {
+          deletePromises.push(this.s3Service.deleteFile(event.imgMobileName));
+          event.imgMobileName = null;
         }
-        
-        event.imgName = null;
-        event.imgNameMobile = null;
-  
-        await this.update(id, event);
+      
+        if (deletePromises.length) {
+          await Promise.all(deletePromises);
+        }
 }catch(error){
   throw ErrorManager.createSignatureError(error.message);
 }
 }
 
-async deleteImage(id:string, imgKey:string){
-  const event = await this.findOne(id);
-  if (!event) {
-    throw new ErrorManager({
-      type:'NOT_FOUND',
-      message:'event does not exist'
-    })
-  }
-try{
-  if(event){
-    await this.s3Service.deleteFile(imgKey);
-    imgKey === event.imgName ? event.imgName = null : event.imgNameMobile = null;
-    await this.update(id, event);
-  }
-}catch(error){
-  throw ErrorManager.createSignatureError(error.message);
+async deleteImage(id:string){
+  try{
+    const event = await this.findOne(id);
+    if(event){
+      await Promise.all([
+        await this.s3Service.deleteFile(event.imgName),
+        await this.s3Service.deleteFile(event.imgMobileName)
+      ]);
+      event.imgName = null;
+      event.imgMobileName = null;
+    
+      await this.update(id, event);
+    }
+  }catch(error){
+    throw ErrorManager.createSignatureError(error.message);
   } 
 }
 

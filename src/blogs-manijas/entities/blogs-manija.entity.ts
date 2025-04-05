@@ -27,7 +27,7 @@ export class BlogsManija {
     imgName:string
 
     @Prop({required:false})
-    imgNameMobile:string
+    imgMobileName:string
 
     @Prop({required: true})
     creationDate:Date

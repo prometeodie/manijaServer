@@ -20,7 +20,7 @@ export class S3Service {
     async uploadFile(buffer: Buffer, fileName:string): Promise<string> {
       try{const uploadParams: S3.PutObjectRequest = {
         Bucket: this.bucketName,
-        Key: `uploads/${Date.now()}-${fileName}`,
+        Key: `uploads/${fileName}`,
         Body: buffer,
         ContentType: 'image/jpeg',
       };
@@ -49,6 +49,9 @@ export class S3Service {
         Key: fileKey,
       };
       try {
+        if (!fileKey) {
+          throw new Error('File key is required to delete the file');
+        }
         await this.s3.deleteObject(params).promise();
       } catch (error) {
         console.error('Error deleting file from S3', error);

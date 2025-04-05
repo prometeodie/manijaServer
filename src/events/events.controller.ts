@@ -14,7 +14,6 @@ import { RolesAccess } from 'src/decorators/roles.decorator';
 import { Roles } from 'src/utils/roles.enum';
 import { PublicAccess } from 'src/decorators/public.decorator';
 import { S3Service } from 'src/utils/s3/s3.service';
-import { DeleteImgKeyDto } from './dto/delete-event-manija.dto';
 
  
 @Injectable()
@@ -79,6 +78,7 @@ export class EventsController {
         try{
           const event = await this.eventsService.findOne(id);
           const originalName = file.originalname.replace(/\s+/g, '_');
+          const newName = `${Date.now()}-${originalName}`;
     
           const [img800, img600] = await Promise.all([
             imgResizing(file, 800),
@@ -86,18 +86,17 @@ export class EventsController {
           ]);
         
           const [key, keyMobile] = await Promise.all([
-            this.s3Service.uploadFile(img800, originalName),
-            this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                  this.s3Service.uploadFile(img800, newName),
+                  this.s3Service.uploadFile(img600, `mobile-${newName}`),
           ]);
 
           event.imgName = key;
-          event.imgNameMobile = keyMobile;
+          event.imgMobileName = keyMobile;
           await this.eventsService.update(id, event);
           return res.status(HttpStatus.OK).json({
             message:'img has been saved',
             })
         }catch(error){
-
           return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             message: `There was an error processing the request ${error.message}`,
           });
@@ -227,10 +226,10 @@ export class EventsController {
      @RolesAccess(Roles.ADMIN)
      async deleteImage(
        @Param('id') id: string,
-       @Body() imgKey: DeleteImgKeyDto, 
+       @Query('imgKey') imgKey: string, 
        @Res() res: Response) {
        try{
-         await this.eventsService.deleteImage(id,imgKey.key);
+         await this.eventsService.deleteImage(id);
          return res.status(HttpStatus.OK).json({
            message: 'Image deleted successfully',
          });

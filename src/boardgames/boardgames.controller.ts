@@ -17,7 +17,6 @@ import { UpdateRouletteDto } from './dto/update-roulette.dto';
 import { CommunityRatingDto } from './dto/comunity-rating.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { S3Service } from 'src/utils/s3/s3.service';
-import { DeleteBoardGameImgKeyDto } from './dto/delete-boardImg-manija.dto';
 
 
 
@@ -80,15 +79,15 @@ export class BoardgamesController {
             const uploadResults = await Promise.all(
               files.map(async (file) => {
                 const originalName = file.originalname.replace(/\s+/g, '_');
-            
+                const newName = `${Date.now()}-${originalName}`;
                 const [img800, img600] = await Promise.all([
                   imgResizing(file, 800),
                   imgResizing(file, 600),
                 ]);
             
                 const [key, keyMobile] = await Promise.all([
-                  this.s3Service.uploadFile(img800, originalName),
-                  this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                  this.s3Service.uploadFile(img800, `${newName}`),
+                  this.s3Service.uploadFile(img600, `mobile-${newName}`),
                 ]);
             
                 return { key, keyMobile };
@@ -118,8 +117,7 @@ export class BoardgamesController {
                 },
                 storage: multer.memoryStorage(),
               }))
-              // @RolesAccess(Roles.ADMIN)
-              @PublicAccess()
+              @RolesAccess(Roles.ADMIN)
               public async uploadImg(
                 @Res() res: Response,
                 @UploadedFile() file: Express.Multer.File,
@@ -128,15 +126,15 @@ export class BoardgamesController {
                 try{
                   const boardgame = await this.boardgamesService.findOne(id);
                   const originalName = file.originalname.replace(/\s+/g, '_');
+                  const newName = `${Date.now()}-${originalName}`;
             
                   const [img800, img600] = await Promise.all([
                     imgResizing(file, 800),
                     imgResizing(file, 600),
                   ]);
-                
                   const [key, keyMobile] = await Promise.all([
-                    this.s3Service.uploadFile(img800, originalName),
-                    this.s3Service.uploadFile(img600, `mobile-${originalName}`),
+                    this.s3Service.uploadFile(img800, newName),
+                    this.s3Service.uploadFile(img600, `mobile-${newName}`),
                   ]);
         
                   boardgame.cardCoverImgName = key;
@@ -173,6 +171,27 @@ export class BoardgamesController {
       });
     }
   }
+
+  @Get('img-url')
+  @PublicAccess()
+   public async getSignedUrl(
+    @Query('key') key: string,
+     @Res() res: Response) {
+     try {
+      if (!key) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'Missing query parameter: key',
+        });
+      }
+       const signedUrl = await this.s3Service.getSignedUrl(key);
+       return res.status(HttpStatus.OK).json({signedUrl});
+     } catch (error) {
+       console.error('Error:', error);
+       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+         message: `There was an error processing the request: ${error.message}`,
+       });
+     }
+   }
 
   @Get('character-average')
   @RolesAccess(Roles.ADMIN)
@@ -431,10 +450,10 @@ export class BoardgamesController {
        @RolesAccess(Roles.ADMIN)
        async deleteImage(
          @Param('id') id: string,
-         @Body() imgKey: DeleteBoardGameImgKeyDto, 
+         @Query('imgKey') imgKey: string, 
          @Res() res: Response) {
          try{
-           await this.boardgamesService.deleteImage(id,imgKey.key);
+           await this.boardgamesService.deleteImage(id,imgKey);
            return res.status(HttpStatus.OK).json({
              message: 'Image deleted successfully',
            });
@@ -449,10 +468,10 @@ export class BoardgamesController {
       @PublicAccess()
        async deleteCardCoverImage(
          @Param('id') id: string,
-         @Body() imgKey: DeleteBoardGameImgKeyDto, 
+         @Query('imgKey') imgKey: string, 
          @Res() res: Response) {
          try{
-           await this.boardgamesService.deleteCardCoverImage(id,imgKey.key);
+           await this.boardgamesService.deleteCardCoverImage(id,imgKey);
            return res.status(HttpStatus.OK).json({
              message: 'Image deleted successfully',
            });
