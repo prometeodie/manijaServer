@@ -18,10 +18,6 @@ import { CommunityRatingDto } from './dto/comunity-rating.dto';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { S3Service } from 'src/utils/s3/s3.service';
 
-
-
-
-
 @Controller('boardgames')
 @UseGuards( AuthGuard, RolesGuard)
 export class BoardgamesController {

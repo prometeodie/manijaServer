@@ -20,47 +20,50 @@ export class AuthGuard implements CanActivate {
   ) {}
 
 
-  async canActivate( context: ExecutionContext ): Promise<boolean>{
-
-    
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const isPublic = this.reflector.get<boolean>(
         PUBLIC_KEY,
         context.getHandler()
-      )
-  
-      if(isPublic){
+      );
+
+      if (isPublic) {
         return true;
       }
-  
+
       const request = context.switchToHttp().getRequest<Request>();
       const token = this.extractTokenFromHeader(request);
-      const decoded = jwt.verify(token, process.env.JWT_SEED);
-      const isTokenExpired = this.isTokenExpired(decoded)
-  
+
       if (!token || Array.isArray(token)) {
         throw new UnauthorizedException('Invalid Token');
       }
-      
-      if(isTokenExpired){
+
+      // ✅ Decode sin verificar firma ni expiración
+      const decoded = jwt.decode(token) as jwt.JwtPayload;
+      const isTokenExpired = this.isTokenExpired(decoded);
+
+      if (isTokenExpired) {
         throw new UnauthorizedException('Token Expired');
       }
 
+      // ✅ Verificar firma después de chequear expiración
       const payload = await this.jwtService.verifyAsync<JwtPayload>(
-        token, { secret: process.env.JWT_SEED }
+        token,
+        { secret: process.env.JWT_SEED }
       );
-        
-      const user = await this.authService.findUserById( payload._id );
-      if ( !user ) throw new UnauthorizedException('User does not exists');
-      if ( !user.isActive ) throw new UnauthorizedException('User is not active');
-      
+
+      const user = await this.authService.findUserById(payload._id);
+      if (!user) throw new UnauthorizedException('User does not exist');
+      if (!user.isActive) throw new UnauthorizedException('User is not active');
+
       request['user'] = user;
-      
+
+      return true;
+
     } catch (error) {
-      throw new UnauthorizedException();
+      // 🔁 Mantener mensaje original
+      throw error;
     }
-   
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
@@ -68,21 +71,12 @@ export class AuthGuard implements CanActivate {
     return type === 'Bearer' ? token : undefined;
   }
 
-  private isTokenExpired(decoded: string | jwt.JwtPayload){
-    if (typeof decoded === 'string') {
+  private isTokenExpired(decoded: jwt.JwtPayload | string): boolean {
+    if (typeof decoded === 'string' || !decoded || !decoded.exp) {
       throw new UnauthorizedException('Invalid token');
     }
-  
-    if (!decoded) {
-      throw new UnauthorizedException('Token is missing or invalid');
-    }
-  
-    if (decoded.exp) {
-      const expirationDate = new Date(decoded.exp * 1000);
-      const currentDate = new Date();
-      return expirationDate < currentDate;
-    }
 
-    return true;
+    return decoded.exp * 1000 < Date.now();
   }
 }
+

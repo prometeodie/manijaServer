@@ -37,7 +37,7 @@ export class S3Service {
       const params = {
         Bucket: this.bucketName,
         Key: fileKey,
-        Expires: 60, 
+        Expires: 3600, 
       };
     
       return this.s3.getSignedUrlPromise('getObject', params);
