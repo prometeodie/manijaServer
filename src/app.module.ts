@@ -28,7 +28,7 @@ import { S3Service } from './utils/s3/s3.service';
 export class AppModule {
   constructor(private readonly adminSetupService: AdminSetupService) {}
 
-  async onModuleInit() {
-    await this.adminSetupService.createAdminIfNotExist();
-  }
+  // async onModuleInit() {
+  //   await this.adminSetupService.createAdminIfNotExist();
+  // }
 }
